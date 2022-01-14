@@ -69,18 +69,16 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ *
  * {@link org.springframework.beans.factory.config.BeanPostProcessor BeanPostProcessor}
- * implementation that autowires annotated fields, setter methods, and arbitrary
- * config methods. Such members to be injected are detected through annotations:
- * by default, Spring's {@link Autowired @Autowired} and {@link Value @Value}
+ * 的实现用于自动装配属性，set方法,和随意的配置方法,加上{@link Autowired @Autowired}和{@link Value @Value}注解的成员属性将被自动检测
  * annotations.
  *
- * <p>Also supports JSR-330's {@link javax.inject.Inject @Inject} annotation,
- * if available, as a direct alternative to Spring's own {@code @Autowired}.
+ * <p> 同时支持 JSR-330's {@link javax.inject.Inject @Inject} 注解,
+ * 如果存在可以代替spring 原生{@code @Autowired}.
  *
- * <h3>Autowired Constructors</h3>
- * <p>Only one constructor of any given bean class may declare this annotation with
- * the 'required' attribute set to {@code true}, indicating <i>the</i> constructor
+ * <h3>自动装配构造方法</h3>
+ * <p>给定的Bean class只有一个构造方法可以声明此注解的required={@code true}, indicating <i>the</i> constructor
  * to autowire when used as a Spring bean. Furthermore, if the 'required' attribute
  * is set to {@code true}, only a single constructor may be annotated with
  * {@code @Autowired}. If multiple <i>non-required</i> constructors declare the
@@ -91,31 +89,24 @@ import org.springframework.util.StringUtils;
  * declares a single constructor to begin with, it will always be used, even if not
  * annotated. An annotated constructor does not have to be public.
  *
- * <h3>Autowired Fields</h3>
- * <p>Fields are injected right after construction of a bean, before any
- * config methods are invoked. Such a config field does not have to be public.
+ * <h3自动装配属性</h3>
+ * <p>在构建 bean 之后，在调用任何配置方法之前，立即注入字段。这样的配置字段不必是public的。
  *
- * <h3>Autowired Methods</h3>
- * <p>Config methods may have an arbitrary name and any number of arguments; each of
- * those arguments will be autowired with a matching bean in the Spring container.
- * Bean property setter methods are effectively just a special case of such a
- * general config method. Config methods do not have to be public.
+ * <h3>自动装配方法</h3>
+ * <p>配置方法可以有任意名称和任意数量的参数；
+ * 这些参数中的每一个都将使用 Spring 容器中的匹配 bean 自动装配。
+ * Bean 属性 setter 方法实际上只是这种通用配置方法的一个特例。配置方法不必是公开的。
  *
  * <h3>Annotation Config vs. XML Config</h3>
- * <p>A default {@code AutowiredAnnotationBeanPostProcessor} will be registered
- * by the "context:annotation-config" and "context:component-scan" XML tags.
- * Remove or turn off the default annotation configuration there if you intend
- * to specify a custom {@code AutowiredAnnotationBeanPostProcessor} bean definition.
+ * <p>当XML标签声明 "context:annotation-config" 或 "context:component-scan" 时会注册一个默认的
+ * {@code AutowiredAnnotationBeanPostProcessor}
+ * 如果您打算指定自定义 {@code AutowiredAnnotationBeanPostProcessor} bean 定义，请删除或关闭那里的默认注释配置。
+ * <p><b>NOTE:</b> 注解注入在XML之前完成;
+ * 因此之后的属性值会覆盖之前的
  *
- * <p><b>NOTE:</b> Annotation injection will be performed <i>before</i> XML injection;
- * thus the latter configuration will override the former for properties wired through
- * both approaches.
- *
- * <h3>{@literal @}Lookup Methods</h3>
- * <p>In addition to regular injection points as discussed above, this post-processor
- * also handles Spring's {@link Lookup @Lookup} annotation which identifies lookup
- * methods to be replaced by the container at runtime. This is essentially a type-safe
- * version of {@code getBean(Class, args)} and {@code getBean(String, args)}.
+ * <h3>{@literal @}属性注入器方法</h3>
+ * <p>除了上面讨论的常规注入点, 后置处理器还提供了Spring's {@link Lookup @Lookup} 注解 用于标识要在运行时由容器替换的查找方法.
+ * 这本质上是一个类型安全的版本{@code getBean(Class, args)} and {@code getBean(String, args)}.
  * See {@link Lookup @Lookup's javadoc} for details.
  *
  * @author Juergen Hoeller
@@ -258,7 +249,8 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 	public Constructor<?>[] determineCandidateConstructors(Class<?> beanClass, final String beanName)
 			throws BeanCreationException {
 
-		// Let's check for lookup methods here...
+		// 检查@Lookup 注解 并把解析的内容存入BeanDefinition 的 MethodOverrides
+		// @Lookup 注解可以保证每次执行都从BeanFactory中拿,适用于singleton 对prototype 的引用
 		if (!this.lookupMethodsChecked.contains(beanName)) {
 			if (AnnotationUtils.isCandidateClass(beanClass, Lookup.class)) {
 				try {
@@ -292,7 +284,8 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 			this.lookupMethodsChecked.add(beanName);
 		}
 
-		// Quick check on the concurrent map first, with minimal locking.
+		// 判断缓存中有没有构造方法列表,这个缓存的意义比较多余.如果是singleton 那该缓存只会使用一次
+		// 如果是prototype 永远不会走到当前代码
 		Constructor<?>[] candidateConstructors = this.candidateConstructorsCache.get(beanClass);
 		if (candidateConstructors == null) {
 			// Fully synchronized resolution now...
@@ -311,18 +304,25 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 					List<Constructor<?>> candidates = new ArrayList<>(rawCandidates.length);
 					Constructor<?> requiredConstructor = null;
 					Constructor<?> defaultConstructor = null;
+					// kotlin 拥有主构造方法的概念,JAVA 可以忽略相关判断,此处判断当前Bean可能是一个kotlin Bean
 					Constructor<?> primaryConstructor = BeanUtils.findPrimaryConstructor(beanClass);
 					int nonSyntheticConstructors = 0;
+					// 统计非合成的构造方法
 					for (Constructor<?> candidate : rawCandidates) {
+						// 判断构造方法是否是合成的
 						if (!candidate.isSynthetic()) {
 							nonSyntheticConstructors++;
 						}
 						else if (primaryConstructor != null) {
+							// 当前构造方法是合成的,有主构造方法跳过判断 @Autowire 注解判断和默认构造方法判断
 							continue;
 						}
+						// 在构造方法中查询 @Autowire 注解如果注解不存在
 						MergedAnnotation<?> ann = findAutowiredAnnotation(candidate);
 						if (ann == null) {
+							// 获取原始类,当前BeanClass 可能是一个CGlib代理类 如果是 返回代理类的父类，否则返回自身
 							Class<?> userClass = ClassUtils.getUserClass(beanClass);
+							// 通过判断返回值和入参判断是不是cglib 代理类 如果是重新判断是否带有@Autowire注解
 							if (userClass != beanClass) {
 								try {
 									Constructor<?> superCtor =
@@ -335,34 +335,44 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 							}
 						}
 						if (ann != null) {
+							// 构造方法中有多个@Autowire 且require=true 的注解 直接抛异常
 							if (requiredConstructor != null) {
 								throw new BeanCreationException(beanName,
 										"Invalid autowire-marked constructor: " + candidate +
 										". Found constructor with 'required' Autowired annotation already: " +
 										requiredConstructor);
 							}
+
 							boolean required = determineRequiredStatus(ann);
 							if (required) {
+								// 构造方法中候选列表中已经有内容,但又查询到 @Autowired(require=true)的构造方法
 								if (!candidates.isEmpty()) {
 									throw new BeanCreationException(beanName,
 											"Invalid autowire-marked constructors: " + candidates +
 											". Found constructor with 'required' Autowired annotation: " +
 											candidate);
 								}
+								// 设置带有 require 的构造方法
 								requiredConstructor = candidate;
 							}
+							// autowired(require=false) 注解可以有多个 但当@Autowire(require=true) 只能有一个,否则抛出异常
 							candidates.add(candidate);
 						}
+						//设置默认的构造方法为无参构造
 						else if (candidate.getParameterCount() == 0) {
 							defaultConstructor = candidate;
 						}
 					}
+					// 如果构造方法候选列表不为空 即有@Autowired注解
 					if (!candidates.isEmpty()) {
-						// Add default constructor to list of optional constructors, as fallback.
+						// 所有@Autowired 注解 required都为false
 						if (requiredConstructor == null) {
+							// 拥有无参构造方法,添加无参数构造方法
 							if (defaultConstructor != null) {
 								candidates.add(defaultConstructor);
 							}
+							// 没有无参数构造方法,选择列表中第一个,这个结果是不稳定的,所以任意一个候选方法都可能
+							// 出现 于是打印日志
 							else if (candidates.size() == 1 && logger.isInfoEnabled()) {
 								logger.info("Inconsistent constructor declaration on bean with name '" + beanName +
 										"': single autowire-marked constructor flagged as optional - " +
@@ -370,19 +380,25 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 										"default constructor to fall back to: " + candidates.get(0));
 							}
 						}
+						// 获取所有的构造方法候选者
 						candidateConstructors = candidates.toArray(new Constructor<?>[0]);
 					}
+					// 仅有一个构造方法且构造方法有参数,没有@Autowire注解
 					else if (rawCandidates.length == 1 && rawCandidates[0].getParameterCount() > 0) {
 						candidateConstructors = new Constructor<?>[] {rawCandidates[0]};
 					}
+					// 有两个非合成构造方法,且有主构造方法，且默认无参构造方法存在，且主构造方法不是无参构造方法
+					// 返回主构造方法和默认无参构造方法
 					else if (nonSyntheticConstructors == 2 && primaryConstructor != null &&
 							defaultConstructor != null && !primaryConstructor.equals(defaultConstructor)) {
 						candidateConstructors = new Constructor<?>[] {primaryConstructor, defaultConstructor};
 					}
+					// 非合成方法只有一个 且有主构造方法 返回主构造方法
 					else if (nonSyntheticConstructors == 1 && primaryConstructor != null) {
 						candidateConstructors = new Constructor<?>[] {primaryConstructor};
 					}
 					else {
+						// 候选构造方法列表为一个空列表
 						candidateConstructors = new Constructor<?>[0];
 					}
 					this.candidateConstructorsCache.put(beanClass, candidateConstructors);

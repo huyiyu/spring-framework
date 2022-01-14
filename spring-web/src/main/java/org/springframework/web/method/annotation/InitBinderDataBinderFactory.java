@@ -64,6 +64,7 @@ public class InitBinderDataBinderFactory extends DefaultDataBinderFactory {
 	@Override
 	public void initBinder(WebDataBinder dataBinder, NativeWebRequest request) throws Exception {
 		for (InvocableHandlerMethod binderMethod : this.binderMethods) {
+			// 检验Value 是否包含当前的target
 			if (isBinderMethodApplicable(binderMethod, dataBinder)) {
 				Object returnValue = binderMethod.invokeForRequest(request, null, dataBinder);
 				if (returnValue != null) {
@@ -75,14 +76,13 @@ public class InitBinderDataBinderFactory extends DefaultDataBinderFactory {
 	}
 
 	/**
-	 * Determine whether the given {@code @InitBinder} method should be used
-	 * to initialize the given {@link WebDataBinder} instance. By default we
-	 * check the specified attribute names in the annotation value, if any.
+	 * 决定当前这个 参数是否有资格运行当前的InitBinder 方法,逻辑是判断initBinder 注解的 Value 是否和参数解析的名称对应上
 	 */
 	protected boolean isBinderMethodApplicable(HandlerMethod initBinderMethod, WebDataBinder dataBinder) {
 		InitBinder ann = initBinderMethod.getMethodAnnotation(InitBinder.class);
 		Assert.state(ann != null, "No InitBinder annotation");
 		String[] names = ann.value();
+		// 要么@InitBinder没有names 属性 要么names 包含当前参数名称
 		return (ObjectUtils.isEmpty(names) || ObjectUtils.containsElement(names, dataBinder.getObjectName()));
 	}
 

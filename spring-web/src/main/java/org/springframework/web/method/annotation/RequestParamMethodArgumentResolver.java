@@ -126,6 +126,7 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
 		if (parameter.hasParameterAnnotation(RequestParam.class)) {
+			// 当参数类型是Map 时 如果想继续使用当前解析一定要有name
 			if (Map.class.isAssignableFrom(parameter.nestedIfOptional().getNestedParameterType())) {
 				RequestParam requestParam = parameter.getParameterAnnotation(RequestParam.class);
 				return (requestParam != null && StringUtils.hasText(requestParam.name()));
@@ -153,7 +154,9 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
 
 	@Override
 	protected NamedValueInfo createNamedValueInfo(MethodParameter parameter) {
+		// 当前参数由requestMappingHandleMapping 创建,此时解析当前方法参数有没有 RequestParam 注解
 		RequestParam ann = parameter.getParameterAnnotation(RequestParam.class);
+		// 返回当前解析的NameValueInfo
 		return (ann != null ? new RequestParamNamedValueInfo(ann) : new RequestParamNamedValueInfo());
 	}
 
@@ -161,7 +164,7 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
 	@Nullable
 	protected Object resolveName(String name, MethodParameter parameter, NativeWebRequest request) throws Exception {
 		HttpServletRequest servletRequest = request.getNativeRequest(HttpServletRequest.class);
-
+		// 文件上传相关解析 不包含map
 		if (servletRequest != null) {
 			Object mpArg = MultipartResolutionDelegate.resolveMultipartArgument(name, parameter, servletRequest);
 			if (mpArg != MultipartResolutionDelegate.UNRESOLVABLE) {
@@ -177,6 +180,7 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
 				arg = (files.size() == 1 ? files.get(0) : files);
 			}
 		}
+		//
 		if (arg == null) {
 			String[] paramValues = request.getParameterValues(name);
 			if (paramValues != null) {

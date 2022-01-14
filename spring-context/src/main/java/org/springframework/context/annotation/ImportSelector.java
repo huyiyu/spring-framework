@@ -22,9 +22,9 @@ import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.lang.Nullable;
 
 /**
- * Interface to be implemented by types that determine which @{@link Configuration}
- * class(es) should be imported based on a given selection criteria, usually one or
- * more annotation attributes.
+ * 根据给定的选择标准（
+ * 通常是一个或多个注解属性）
+ * 确定应导入哪个 @{@link Configuration} 类的类型要实现的接口。
  *
  * <p>An {@link ImportSelector} may implement any of the following
  * {@link org.springframework.beans.factory.Aware Aware} interfaces,

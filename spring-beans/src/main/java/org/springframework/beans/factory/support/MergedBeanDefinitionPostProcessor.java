@@ -19,10 +19,10 @@ package org.springframework.beans.factory.support;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 
 /**
- * Post-processor callback interface for <i>merged</i> bean definitions at runtime.
- * {@link BeanPostProcessor} implementations may implement this sub-interface in order
- * to post-process the merged bean definition (a processed copy of the original bean
- * definition) that the Spring {@code BeanFactory} uses to create a bean instance.
+ * <i>merged<i> bean 定义在运行时的后处理器回调接口。
+ * {@link BeanPostProcessor} 实现可以实现这个子接口，
+ * 以便对 Spring {@code BeanFactory} 用来创建 bean
+ * 实例的合并 bean 定义（原始 bean 定义的处理副本）进行后处理。
  *
  * <p>The {@link #postProcessMergedBeanDefinition} method may for example introspect
  * the bean definition in order to prepare some cached metadata before post-processing

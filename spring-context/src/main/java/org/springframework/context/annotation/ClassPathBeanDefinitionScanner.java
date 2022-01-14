@@ -20,6 +20,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -36,18 +37,17 @@ import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
 
 /**
- * A bean definition scanner that detects bean candidates on the classpath,
- * registering corresponding bean definitions with a given registry ({@code BeanFactory}
- * or {@code ApplicationContext}).
+ * 一个 bean 定义扫描器，用于检测类路径上的 bean 候选,
+ * 使用给定的注册表注册相应的 bean 定义({@code BeanFactory}
+ * 或 {@code ApplicationContext}).
  *
- * <p>Candidate classes are detected through configurable type filters. The
- * default filters include classes that are annotated with Spring's
+ * <p>通过可配置的类型过滤器检测候选类. 默认过滤器包括用 Spring 注释的类
  * {@link org.springframework.stereotype.Component @Component},
  * {@link org.springframework.stereotype.Repository @Repository},
  * {@link org.springframework.stereotype.Service @Service}, or
  * {@link org.springframework.stereotype.Controller @Controller} stereotype.
  *
- * <p>Also supports Java EE 6's {@link javax.annotation.ManagedBean} and
+ * <p>还支持 Java EE 6 {@link javax.annotation.ManagedBean} 和
  * JSR-330's {@link javax.inject.Named} annotations, if available.
  *
  * @author Mark Fisher
@@ -368,6 +368,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 
 
 	/**
+	 * 这个方法出现过多次,原理是判断当前 registry是否是Environment 持有者
 	 * Get the Environment from the given registry if possible, otherwise return a new
 	 * StandardEnvironment.
 	 */

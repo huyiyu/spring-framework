@@ -75,12 +75,14 @@ abstract class ConfigurationClassUtils {
 
 
 	/**
-	 * Check whether the given bean definition is a candidate for a configuration class
-	 * (or a nested component class declared within a configuration/component class,
-	 * to be auto-registered as well), and mark it accordingly.
-	 * @param beanDef the bean definition to check
-	 * @param metadataReaderFactory the current factory in use by the caller
-	 * @return whether the candidate qualifies as (any kind of) configuration class
+	 * 检查给定的 bean 定义是否是配置类的候选者(或者在配置组件类中声明的嵌套组件类，也可以自动注册),并相应地标记它。
+	 * 这个条件成立的前提是 该BeanDefiniton 有metadata,并标记Configuration 类型为 FULL 或 Lite 并解析Order 执行顺序
+	 * 如果是 annotationBeanDefinition 直接获取
+	 * 如果不是 但是BeanClass是class类型使用introspect 解析出来metadata
+	 * 如果不是 但是BeanClass是String类型,此时使用ASM技术反射字节码来获取class
+	 * @param beanDef 要检查的 bean 定义
+	 * @param metadataReaderFactory 调用者当前使用的工厂
+	 * @return 候选人是否有资格作为（任何类型的）配置类
 	 */
 	public static boolean checkConfigurationClassCandidate(
 			BeanDefinition beanDef, MetadataReaderFactory metadataReaderFactory) {
@@ -89,14 +91,17 @@ abstract class ConfigurationClassUtils {
 		if (className == null || beanDef.getFactoryMethodName() != null) {
 			return false;
 		}
-
+		// 保存着当前BeanDefinition 的class 信息的对象 一般用于判断有没有注解 等和反射相关的操作
+		// 他有两种实现 当有Clss 的时候  的实现类是 StandardAnnotationMetadata 基于反射获取注解或其他信息
+		// 当只有ClassName 的时候  使用 ASM 技术去读取class 文件形成的 simpleAnnottationMetadata
 		AnnotationMetadata metadata;
+		//是@Configuration 类型的且metaData的Class等于BeanClass
 		if (beanDef instanceof AnnotatedBeanDefinition &&
 				className.equals(((AnnotatedBeanDefinition) beanDef).getMetadata().getClassName())) {
 			// Can reuse the pre-parsed metadata from the given BeanDefinition...
 			metadata = ((AnnotatedBeanDefinition) beanDef).getMetadata();
-		}
-		else if (beanDef instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) beanDef).hasBeanClass()) {
+			//不是@Configuration类型 但是beanClass是Class类型的直接可以通过内省获得AnnotationMetadata
+		} else if (beanDef instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) beanDef).hasBeanClass()) {
 			// Check already loaded Class if present...
 			// since we possibly can't even load the class file for this Class.
 			Class<?> beanClass = ((AbstractBeanDefinition) beanDef).getBeanClass();
@@ -124,9 +129,11 @@ abstract class ConfigurationClassUtils {
 
 		Map<String, Object> config = metadata.getAnnotationAttributes(Configuration.class.getName());
 		if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) {
+			// 他有注解 且proxyBeanMethod 是true 那么设置它的 CONFIGURATION_CLASS_ATTRIBUTE = FULL
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
 		else if (config != null || isConfigurationCandidate(metadata)) {
+			// 他有注解 且proxyBeanMethod 是false 或
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
 		}
 		else {

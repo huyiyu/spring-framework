@@ -28,26 +28,21 @@ import org.springframework.lang.Nullable;
  * This is read-only while the application is running, but may be
  * reloaded if the implementation supports this.
  *
- * <p>An ApplicationContext provides:
+ * <p>一个应用程序上下文提供
  * <ul>
- * <li>Bean factory methods for accessing application components.
- * Inherited from {@link org.springframework.beans.factory.ListableBeanFactory}.
- * <li>The ability to load file resources in a generic fashion.
- * Inherited from the {@link org.springframework.core.io.ResourceLoader} interface.
- * <li>The ability to publish events to registered listeners.
- * Inherited from the {@link ApplicationEventPublisher} interface.
- * <li>The ability to resolve messages, supporting internationalization.
- * Inherited from the {@link MessageSource} interface.
- * <li>Inheritance from a parent context. Definitions in a descendant context
- * will always take priority. This means, for example, that a single parent
- * context can be used by an entire web application, while each servlet has
- * its own child context that is independent of that of any other servlet.
+ * <li>从 {@link org.springframework.beans.factory.ListableBeanFactory}. 继承来的方法
+ * <li>从 {@link org.springframework.core.io.ResourceLoader} 获得的加载文件的能力
+ * <li>从 {@link ApplicationEventPublisher} 获得的发布订阅事件的能力
+ * <li>从 {@link MessageSource} 解析消息 提供 I18n 国际化的能力.
+ * <li>从父上下文继承。后代上下文中的定义将始终优先. 这意味着,
+ * 整个 Web 应用程序可以使用单个父上下文,
+ * 而每个 servlet 都有自己的子上下文，独立于任何其他 servlet 的子上下文.
  * </ul>
  *
- * <p>In addition to standard {@link org.springframework.beans.factory.BeanFactory}
- * lifecycle capabilities, ApplicationContext implementations detect and invoke
- * {@link ApplicationContextAware} beans as well as {@link ResourceLoaderAware},
- * {@link ApplicationEventPublisherAware} and {@link MessageSourceAware} beans.
+ * <p>除了标准 {@link org.springframework.beans.factory.BeanFactory} 生命周期能力
+ * ApplicationContext 实现检测和调用
+ * {@link ApplicationContextAware} beans 以及 {@link ResourceLoaderAware},
+ * {@link ApplicationEventPublisherAware} 和 {@link MessageSourceAware} beans.
  *
  * @author Rod Johnson
  * @author Juergen Hoeller

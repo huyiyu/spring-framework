@@ -56,26 +56,21 @@ import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * A {@link ResourcePatternResolver} implementation that is able to resolve a
- * specified resource location path into one or more matching Resources.
- * The source path may be a simple path which has a one-to-one mapping to a
- * target {@link org.springframework.core.io.Resource}, or alternatively
- * may contain the special "{@code classpath*:}" prefix and/or
- * internal Ant-style regular expressions (matched using Spring's
- * {@link org.springframework.util.AntPathMatcher} utility).
- * Both of the latter are effectively wildcards.
+ * {@link ResourcePatternResolver} 实现，
+ * 能够将指定的资源位置路径解析为一个或多个匹配的资源。源路径可以是一个简单的路径，
+ * 它与目标 {@link org.springframework.core.io.Resource} 一对一映射，
+ * 或者可以包含特殊的“{@code classpath:}”前缀和或内部 Ant 风格的正则表达式
+ * （使用 Spring 的 {@link org.springframework.util.AntPathMatcher} 实用程序匹配）
+ * 。后者都是有效的通配符。
  *
  * <p><b>No Wildcards:</b>
  *
- * <p>In the simple case, if the specified location path does not start with the
- * {@code "classpath*:}" prefix, and does not contain a PathMatcher pattern,
- * this resolver will simply return a single resource via a
- * {@code getResource()} call on the underlying {@code ResourceLoader}.
- * Examples are real URLs such as "{@code file:C:/context.xml}", pseudo-URLs
- * such as "{@code classpath:/context.xml}", and simple unprefixed paths
- * such as "{@code /WEB-INF/context.xml}". The latter will resolve in a
- * fashion specific to the underlying {@code ResourceLoader} (e.g.
- * {@code ServletContextResource} for a {@code WebApplicationContext}).
+ * <p>在简单的情况下，如果指定的位置路径不以 {@code "classpath:}" 前缀开头，
+ * 并且不包含 PathMatcher 模式，则此解析器将通过 {@code getResource 简单地返回单个资源()}
+ * \调用底层的 {@code ResourceLoader}。例如“{@code file:C:context.xml}”等真实 URL、
+ * “{@code classpath:context.xml}”等伪 URL，以及“{@code WEB-INFcontext”等简单无前缀路径.xml}”。
+ * 后者将以特定于底层 {@code ResourceLoader} 的方式解析
+ * （例如 {@code WebApplicationContext} 的 {@code ServletContextResource}）。
  *
  * <p><b>Ant-style Patterns:</b>
  *

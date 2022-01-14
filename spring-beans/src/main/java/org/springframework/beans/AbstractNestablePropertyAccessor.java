@@ -46,15 +46,13 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * A basic {@link ConfigurablePropertyAccessor} that provides the necessary
- * infrastructure for all typical use cases.
+ * 一个基本的 {@link ConfigurablePropertyAccessor}，
+ * 为所有典型用例提供必要的基础设施。
  *
- * <p>This accessor will convert collection and array values to the corresponding
- * target collections or arrays, if necessary. Custom property editors that deal
- * with collections or arrays can either be written via PropertyEditor's
- * {@code setValue}, or against a comma-delimited String via {@code setAsText},
- * as String arrays are converted in such a format if the array itself is not
- * assignable.
+ * <p>此访问器将集合和数组值转换为
+ * 相应的目标集合或数组, 如有必要。处理集合或数组的自定义属性编辑器可以通过 PropertyEditor 编写
+ * {@code setValue}, 或通过 {@code setAsText} 对逗号分隔的字符串,
+ * 因为如果数组本身不可分配，则字符串数组将以这种格式转换.
  *
  * @author Juergen Hoeller
  * @author Stephane Nicoll
@@ -219,6 +217,7 @@ public abstract class AbstractNestablePropertyAccessor extends AbstractPropertyA
 	 * Return the root object at the top of the path of this accessor.
 	 * @see #getNestedPath
 	 */
+
 	public final Object getRootInstance() {
 		Assert.state(this.rootObject != null, "No root object");
 		return this.rootObject;

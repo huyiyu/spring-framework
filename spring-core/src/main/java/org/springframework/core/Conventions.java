@@ -99,15 +99,19 @@ public final class Conventions {
 	 * @return the generated variable name
 	 */
 	public static String getVariableNameForParameter(MethodParameter parameter) {
+		// 当前参数不能为空
 		Assert.notNull(parameter, "MethodParameter must not be null");
 		Class<?> valueClass;
+		// 是否负数
 		boolean pluralize = false;
 		String reactiveSuffix = "";
-
+		// 如果是数组类型
 		if (parameter.getParameterType().isArray()) {
+			// 获取数组中的元素
 			valueClass = parameter.getParameterType().getComponentType();
 			pluralize = true;
 		}
+		// 如果是集合类型 获取集合中的泛型元素
 		else if (Collection.class.isAssignableFrom(parameter.getParameterType())) {
 			valueClass = ResolvableType.forMethodParameter(parameter).asCollection().resolveGeneric();
 			if (valueClass == null) {
@@ -117,6 +121,7 @@ public final class Conventions {
 			pluralize = true;
 		}
 		else {
+			// 获取class
 			valueClass = parameter.getParameterType();
 			ReactiveAdapter adapter = ReactiveAdapterRegistry.getSharedInstance().getAdapter(valueClass);
 			if (adapter != null && !adapter.getDescriptor().isNoValue()) {
@@ -124,7 +129,7 @@ public final class Conventions {
 				valueClass = parameter.nested().getNestedParameterType();
 			}
 		}
-
+		// 如果是复数形式加List 否则返回单数形式的类名
 		String name = ClassUtils.getShortNameAsProperty(valueClass);
 		return (pluralize ? pluralize(name) : name + reactiveSuffix);
 	}
@@ -178,6 +183,7 @@ public final class Conventions {
 		}
 
 		Class<?> valueClass;
+		// 是否是多元素如,数组,集合
 		boolean pluralize = false;
 		String reactiveSuffix = "";
 

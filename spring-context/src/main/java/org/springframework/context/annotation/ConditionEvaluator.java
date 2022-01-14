@@ -155,6 +155,11 @@ class ConditionEvaluator {
 		}
 
 		@Nullable
+		/**
+		 * 这个方法的意图是获得真正的BeanFactory
+		 * 由于BeanDefinitionRegistry 是 ApplicationContext 和 BeanFactory 的父接口
+		 * 且一般ApplicationContext 会持有一个BeanFactory
+		 */
 		private ConfigurableListableBeanFactory deduceBeanFactory(@Nullable BeanDefinitionRegistry source) {
 			if (source instanceof ConfigurableListableBeanFactory) {
 				return (ConfigurableListableBeanFactory) source;
@@ -165,6 +170,11 @@ class ConditionEvaluator {
 			return null;
 		}
 
+		/**
+		 * 同上 这个方法的作用是获得真正的Environment
+		 * @param source
+		 * @return
+		 */
 		private Environment deduceEnvironment(@Nullable BeanDefinitionRegistry source) {
 			if (source instanceof EnvironmentCapable) {
 				return ((EnvironmentCapable) source).getEnvironment();

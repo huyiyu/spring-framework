@@ -368,6 +368,15 @@ public class UrlPathHelper {
 	 * context path and the servlet path returned by the HttpServletRequest are
 	 * stripped of semicolon content unlike the requestUri.
 	 */
+
+	/**
+	 * 将给定的“映射”匹配到“requestUri”的开头，如果有匹配则返回额外的部分。之所以需要此方法，
+	 * 是因为 HttpServletRequest 返回的上下文路径和 servlet 路径与 requestUri 不同，去掉了分号内容。
+	 * @param requestUri uri
+	 * @param mapping contextPath
+	 * @param ignoreCase 是否忽略大小写
+	 * @return 最终路径
+	 */
 	@Nullable
 	private String getRemainingPath(String requestUri, String mapping, boolean ignoreCase) {
 		int index1 = 0;

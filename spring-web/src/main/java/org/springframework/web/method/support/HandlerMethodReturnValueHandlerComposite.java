@@ -34,6 +34,9 @@ import org.springframework.web.context.request.NativeWebRequest;
  */
 public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodReturnValueHandler {
 
+	/**
+	 * 保存所有返回值处理器
+	 */
 	private final List<HandlerMethodReturnValueHandler> returnValueHandlers = new ArrayList<>();
 
 
@@ -70,14 +73,21 @@ public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodRe
 	@Override
 	public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
 			ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
-
+		// 判断当前返回值使用哪一个返回值处理器
 		HandlerMethodReturnValueHandler handler = selectHandler(returnValue, returnType);
 		if (handler == null) {
 			throw new IllegalArgumentException("Unknown return value type: " + returnType.getParameterType().getName());
 		}
+		// 调用返回值处理器处理
 		handler.handleReturnValue(returnValue, returnType, mavContainer, webRequest);
 	}
 
+	/**
+	 * 判断当前的返回值适合使用哪一个返回值处理器
+	 * @param value
+	 * @param returnType
+	 * @return
+	 */
 	@Nullable
 	private HandlerMethodReturnValueHandler selectHandler(@Nullable Object value, MethodParameter returnType) {
 		boolean isAsyncValue = isAsyncReturnValue(value, returnType);

@@ -43,10 +43,11 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Encapsulates a Java {@link java.lang.reflect.Type}, providing access to
- * {@link #getSuperType() supertypes}, {@link #getInterfaces() interfaces}, and
- * {@link #getGeneric(int...) generic parameters} along with the ability to ultimately
- * {@link #resolve() resolve} to a {@link java.lang.Class}.
+ * 封装了一个 Java {@link java.lang.reflect.Type}，
+ * 提供对 {@link getSuperType() 超类型}、
+ * {@link getInterfaces() 接口}和
+ * {@link getGeneric(int...) 泛型参数}的访问以及最终
+ * {@link resolve() resolve} 到 {@link java.lang.Class} 的能力。
  *
  * <p>{@code ResolvableTypes} may be obtained from {@link #forField(Field) fields},
  * {@link #forMethodParameter(Method, int) method parameters},
@@ -1075,7 +1076,7 @@ public class ResolvableType implements Serializable {
 	}
 
 	/**
-	 * Return a {@link ResolvableType} for the specified {@link Class} with pre-declared generics.
+	 * 使用预先声明的泛型为指定的 {@link Class} 返回一个 {@link ResolvableType}。
 	 * @param clazz the class (or interface) to introspect
 	 * @param generics the generics of the class
 	 * @return a {@link ResolvableType} for the specific class and generics

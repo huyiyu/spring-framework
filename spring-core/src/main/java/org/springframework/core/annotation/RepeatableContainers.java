@@ -260,7 +260,7 @@ public abstract class RepeatableContainers {
 
 
 	/**
-	 * No repeatable containers.
+	 * 没有可重复的容器。
 	 */
 	private static class NoRepeatableContainers extends RepeatableContainers {
 

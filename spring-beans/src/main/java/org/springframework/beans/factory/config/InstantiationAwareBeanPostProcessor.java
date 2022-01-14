@@ -23,9 +23,9 @@ import org.springframework.beans.PropertyValues;
 import org.springframework.lang.Nullable;
 
 /**
- * Subinterface of {@link BeanPostProcessor} that adds a before-instantiation callback,
- * and a callback after instantiation but before explicit properties are set or
- * autowiring occurs.
+ * {@link BeanPostProcessor} 的子接口，
+ * 它添加了一个实例化之前的回调，
+ * 以及一个实例化之后但在显式属性设置或自动装配发生之前的回调。
  *
  * <p>Typically used to suppress default instantiation for specific target beans,
  * for example to create proxies with special TargetSources (pooling targets,
@@ -120,20 +120,16 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 	}
 
 	/**
-	 * Post-process the given property values before the factory applies them
-	 * to the given bean. Allows for checking whether all dependencies have been
-	 * satisfied, for example based on a "Required" annotation on bean property setters.
-	 * <p>Also allows for replacing the property values to apply, typically through
-	 * creating a new MutablePropertyValues instance based on the original PropertyValues,
-	 * adding or removing specific values.
-	 * <p>The default implementation returns the given {@code pvs} as-is.
-	 * @param pvs the property values that the factory is about to apply (never {@code null})
-	 * @param pds the relevant property descriptors for the target bean (with ignored
-	 * dependency types - which the factory handles specifically - already filtered out)
-	 * @param bean the bean instance created, but whose properties have not yet been set
-	 * @param beanName the name of the bean
-	 * @return the actual property values to apply to the given bean (can be the passed-in
-	 * PropertyValues instance), or {@code null} to skip property population
+	 * 在工厂将给定的属性值应用于给定的 bean 之前对给定的属性值进行后处理。
+	 * 允许检查是否所有依赖项都已满足，例如基于 bean 属性设置器上的“必需”注释。
+	 * <p>还允许替换要应用的属性值，通常通过基于原始 PropertyValues
+	 * 创建新的 MutablePropertyValues 实例，添加或删除特定值。
+	 * <p>默认实现按原样返回给定的 {@code pvs}。
+	 * @param pvs 工厂即将应用的属性值（从不{@code null}）
+	 * @param pds 目标 bean 的相关属性描述符（忽略依赖类型 - 工厂专门处理 - 已经过滤掉）
+	 * @param bean 创建的 bean 实例，但尚未设置其属性
+	 * @param beanName bean 的名字
+	 * @return 应用于给定 bean 的实际属性值（可以是传入的 PropertyValues 实例），或 {@code null} 以跳过属性填充
 	 * @throws org.springframework.beans.BeansException in case of errors
 	 * @see #postProcessProperties
 	 * @see org.springframework.beans.MutablePropertyValues

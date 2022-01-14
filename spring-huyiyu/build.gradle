@@ -1,0 +1,20 @@
+plugins {
+    id 'java'
+}
+
+group 'org.springframework'
+version '5.3.5'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile(project(":spring-context"))
+    compile(project(":spring-aop"))
+    compile("org.aspectj:aspectjweaver")
+}
+
+test {
+    useJUnitPlatform()
+}

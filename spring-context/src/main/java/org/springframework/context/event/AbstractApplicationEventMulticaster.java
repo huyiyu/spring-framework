@@ -242,8 +242,7 @@ public abstract class AbstractApplicationEventMulticaster
 			listenerBeans = new LinkedHashSet<>(this.defaultRetriever.applicationListenerBeans);
 		}
 
-		// Add programmatically registered listeners, including ones coming
-		// from ApplicationListenerDetector (singleton beans and inner beans).
+		// 添加以编程方式注册的侦听器，包括来自 ApplicationListenerDetector（单例 bean 和内部 bean）的侦听器。
 		for (ApplicationListener<?> listener : listeners) {
 			if (supportsEvent(listener, eventType, sourceType)) {
 				if (retriever != null) {
@@ -253,8 +252,7 @@ public abstract class AbstractApplicationEventMulticaster
 			}
 		}
 
-		// Add listeners by bean name, potentially overlapping with programmatically
-		// registered listeners above - but here potentially with additional metadata.
+		// 按 bean 名称添加侦听器，可能与上面以编程方式注册的侦听器重叠 - 但这里可能带有额外的元数据。
 		if (!listenerBeans.isEmpty()) {
 			ConfigurableBeanFactory beanFactory = getBeanFactory();
 			for (String listenerBeanName : listenerBeans) {

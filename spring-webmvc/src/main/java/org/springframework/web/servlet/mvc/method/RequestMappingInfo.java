@@ -489,6 +489,11 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 	}
 
 	@SuppressWarnings("ConstantConditions")
+	/**
+	 * requestMappingInfo 计算HashCode
+	 * 通过caculateHashCode 计算当前持有的成员变量来计算
+	 * 两个requestMappingInfo 是否相同
+	 */
 	private static int calculateHashCode(
 			@Nullable PathPatternsRequestCondition pathPatterns, @Nullable PatternsRequestCondition patterns,
 			RequestMethodsRequestCondition methods, ParamsRequestCondition params, HeadersRequestCondition headers,

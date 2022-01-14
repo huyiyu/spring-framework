@@ -240,16 +240,13 @@ public @interface Bean {
 	String[] name() default {};
 
 	/**
-	 * Are dependencies to be injected via convention-based autowiring by name or type?
-	 * <p>Note that this autowire mode is just about externally driven autowiring based
-	 * on bean property setter methods by convention, analogous to XML bean definitions.
-	 * <p>The default mode does allow for annotation-driven autowiring. "no" refers to
-	 * externally driven autowiring only, not affecting any autowiring demands that the
-	 * bean class itself expresses through annotations.
+	 * 依赖项是否通过名称或类型通过基于约定的自动装配注入？
+	 * <p>请注意，这种自动装配模式只是基于约定的 bean 属性设置方法的外部驱动自动装配，类似于 XML bean 定义。
+	 * <p>默认模式确实允许注解驱动的自动装配。 “no”仅指外部驱动的自动装配，不影响 bean 类本身通过注解表达的任何自动装配需求。
 	 * @see Autowire#BY_NAME
 	 * @see Autowire#BY_TYPE
-	 * @deprecated as of 5.1, since {@code @Bean} factory method argument resolution and
-	 * {@code @Autowired} processing supersede name/type-based bean property injection
+	 * @deprecated as of 5.1,由于 {@code @Bean} 工厂方法参数解析和
+	 * {@code @Autowired} 处理取代了基于名称类型的 bean 属性注入
 	 */
 	@Deprecated
 	Autowire autowire() default Autowire.NO;

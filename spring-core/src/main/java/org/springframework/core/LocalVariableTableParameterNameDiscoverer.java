@@ -86,12 +86,13 @@ public class LocalVariableTableParameterNameDiscoverer implements ParameterNameD
 	}
 
 	/**
-	 * Inspects the target class.
+	 * 通过ASM加载当前方法的参数名称获得name
 	 * <p>Exceptions will be logged, and a marker map returned to indicate the
 	 * lack of debug information.
 	 */
 	private Map<Executable, String[]> inspectClass(Class<?> clazz) {
 		InputStream is = clazz.getResourceAsStream(ClassUtils.getClassFileName(clazz));
+		//当前classpath没有这个class 打印debug日志
 		if (is == null) {
 			// We couldn't load the class file, which is not fatal as it
 			// simply means this method of discovering parameter names won't work.

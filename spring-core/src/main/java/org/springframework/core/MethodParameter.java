@@ -705,6 +705,7 @@ public class MethodParameter {
 		if (this.parameterIndex < 0) {
 			return null;
 		}
+		// 默认使用DefaultParameterNameDiscoverer
 		ParameterNameDiscoverer discoverer = this.parameterNameDiscoverer;
 		if (discoverer != null) {
 			String[] parameterNames = null;

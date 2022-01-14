@@ -141,6 +141,7 @@ class ConstructorResolver {
 			Object[] argsToResolve = null;
 			synchronized (mbd.constructorArgumentLock) {
 				constructorToUse = (Constructor<?>) mbd.resolvedConstructorOrFactoryMethod;
+				// 如果有 说明当前Bean是 prototype 的 并且第二次访问,此时有内容
 				if (constructorToUse != null && mbd.constructorArgumentsResolved) {
 					// Found a cached constructor...
 					argsToUse = mbd.resolvedConstructorArguments;
@@ -169,7 +170,7 @@ class ConstructorResolver {
 							"] from ClassLoader [" + beanClass.getClassLoader() + "] failed", ex);
 				}
 			}
-
+			// 仅有一个构造方法,且没有构造方法参数,默认没有
 			if (candidates.length == 1 && explicitArgs == null && !mbd.hasConstructorArgumentValues()) {
 				Constructor<?> uniqueCandidate = candidates[0];
 				if (uniqueCandidate.getParameterCount() == 0) {
@@ -197,7 +198,7 @@ class ConstructorResolver {
 				resolvedValues = new ConstructorArgumentValues();
 				minNrOfArgs = resolveConstructorArguments(beanName, mbd, bw, cargs, resolvedValues);
 			}
-
+			// 公有方法排前面,私有方法排后面 同是公有方法,参数多的排前面,参数少的排后面
 			AutowireUtils.sortConstructors(candidates);
 			int minTypeDiffWeight = Integer.MAX_VALUE;
 			Set<Constructor<?>> ambiguousConstructors = null;
@@ -248,10 +249,12 @@ class ConstructorResolver {
 					}
 					argsHolder = new ArgumentsHolder(explicitArgs);
 				}
-
+				// 判断是否采用宽松的构造方法处理方案 默认为false
+				// 通过不宽松的模式判断类型相同 得分更低 更有可能选上
+				// 通过宽松的模式判断只要能发生里氏转换 分数就比较低
 				int typeDiffWeight = (mbd.isLenientConstructorResolution() ?
 						argsHolder.getTypeDifferenceWeight(paramTypes) : argsHolder.getAssignabilityWeight(paramTypes));
-				// Choose this constructor if it represents the closest match.
+				// 选择得分比较低的替换掉 constructorToUse argsHolderToUse 在退出循环的时候选择
 				if (typeDiffWeight < minTypeDiffWeight) {
 					constructorToUse = candidate;
 					argsHolderToUse = argsHolder;
@@ -946,10 +949,9 @@ class ConstructorResolver {
 		}
 
 		public int getTypeDifferenceWeight(Class<?>[] paramTypes) {
-			// If valid arguments found, determine type difference weight.
-			// Try type difference weight on both the converted arguments and
-			// the raw arguments. If the raw weight is better, use it.
-			// Decrease raw weight by 1024 to prefer it over equal converted weight.
+			// 如果找到有效参数，则确定类型差异权重。
+			// 尝试对转换后的参数和原始参数进行类型差异权重。如果原始重量更好，请使用它。
+			// 将原始重量减少 1024 以使其优于相等的转换重量。
 			int typeDiffWeight = MethodInvoker.getTypeDifferenceWeight(paramTypes, this.arguments);
 			int rawTypeDiffWeight = MethodInvoker.getTypeDifferenceWeight(paramTypes, this.rawArguments) - 1024;
 			return Math.min(rawTypeDiffWeight, typeDiffWeight);

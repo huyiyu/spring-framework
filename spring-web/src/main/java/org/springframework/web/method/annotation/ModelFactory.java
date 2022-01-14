@@ -91,26 +91,31 @@ public final class ModelFactory {
 
 
 	/**
-	 * Populate the model in the following order:
+	 * 通常 model遵循以下顺序
 	 * <ol>
-	 * <li>Retrieve "known" session attributes listed as {@code @SessionAttributes}.
-	 * <li>Invoke {@code @ModelAttribute} methods
-	 * <li>Find {@code @ModelAttribute} method arguments also listed as
-	 * {@code @SessionAttributes} and ensure they're present in the model raising
-	 * an exception if necessary.
+	 * <li> 从ControllerAdvice 的ModelAttribute 对应的方法中查询SessionAttribyte 注解相关获得Map
+	 * <li> 执行@ModelAttribute 方法获得key value
+	 * <li> 从当前请求的@SessionAttribute中获得1环节没获取到的key 匹配value 放入ModelMap
 	 * </ol>
-	 * @param request the current request
-	 * @param container a container with the model to be initialized
-	 * @param handlerMethod the method for which the model is initialized
+	 * @param request 当前请求
+	 * @param container 用于保存结果的对象
+	 * @param handlerMethod 当前请求对应的对象
 	 * @throws Exception may arise from {@code @ModelAttribute} methods
 	 */
 	public void initModel(NativeWebRequest request, ModelAndViewContainer container, HandlerMethod handlerMethod)
 			throws Exception {
-
+		// 从 HttpSession 获取对应的 sessionAttributes,
+		// key 是从 ControllerAdviceBean 的 @ModelAttribute 方法中收集的和@SessionAttribute注解相关的参数
+		// value 是从当前request的Session 获得的
 		Map<String, ?> sessionAttributes = this.sessionAttributesHandler.retrieveAttributes(request);
+		// container 内部优先保留 没有才添加sessionAttribute
 		container.mergeAttributes(sessionAttributes);
+		// 运行@ModelAttribute 相关的方法(包含Controller 内部的和ControllerAdvice 内部的),
+		// 运行之后将结果当作value,放入modelMap中,
+		// key的取值比较复杂,@ModelAttribute有value,那么取value作为key 如果没有根据class 是否是数组或集合以及普通类做不同处理
 		invokeModelAttributeMethods(request, container);
-
+		// 此处的HandlerMethod是当前正请求的方法,
+		// 从此处查询SessionAttribute key 比对,如果获得了不存在于原来集合的key
 		for (String name : findSessionAttributeArguments(handlerMethod)) {
 			if (!container.containsAttribute(name)) {
 				Object value = this.sessionAttributesHandler.retrieveAttribute(request, name);
@@ -288,7 +293,9 @@ public final class ModelFactory {
 	private static class ModelMethod {
 
 		private final InvocableHandlerMethod handlerMethod;
-
+		/**
+		 * 解析入参上带有ModelAttribute 属性的参数获取name
+		 */
 		private final Set<String> dependencies = new HashSet<>();
 
 		public ModelMethod(InvocableHandlerMethod handlerMethod) {

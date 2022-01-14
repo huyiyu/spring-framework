@@ -63,13 +63,10 @@ public interface ConfigurableListableBeanFactory
 	void ignoreDependencyInterface(Class<?> ifc);
 
 	/**
-	 * Register a special dependency type with corresponding autowired value.
-	 * <p>This is intended for factory/context references that are supposed
-	 * to be autowirable but are not defined as beans in the factory:
-	 * e.g. a dependency of type ApplicationContext resolved to the
-	 * ApplicationContext instance that the bean is living in.
-	 * <p>Note: There are no such default types registered in a plain BeanFactory,
-	 * not even for the BeanFactory interface itself.
+	 * 使用相应的自动装配值注册一个特殊的依赖类型。
+	 * <p>这适用于应该是可自动装配但在工厂中未定义为 bean 的 factorycontext 引用：
+	 * 例如ApplicationContext 类型的依赖项解析为 bean 所在的 ApplicationContext 实例。
+	 * <p>Note:在普通的 BeanFactory 中没有注册这样的默认类型，甚至没有为 BeanFactory 接口本身注册.
 	 * @param dependencyType the dependency type to register. This will typically
 	 * be a base interface such as BeanFactory, with extensions of it resolved
 	 * as well if declared as an autowiring dependency (e.g. ListableBeanFactory),

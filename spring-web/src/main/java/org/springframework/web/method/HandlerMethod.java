@@ -44,43 +44,53 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- * Encapsulates information about a handler method consisting of a
- * {@linkplain #getMethod() method} and a {@linkplain #getBean() bean}.
- * Provides convenient access to method parameters, the method return value,
- * method annotations, etc.
- *
- * <p>The class may be created with a bean instance or with a bean name
- * (e.g. lazy-init bean, prototype bean). Use {@link #createWithResolvedBean()}
- * to obtain a {@code HandlerMethod} instance with a bean instance resolved
- * through the associated {@link BeanFactory}.
- *
- * @author Arjen Poutsma
- * @author Rossen Stoyanchev
- * @author Juergen Hoeller
- * @author Sam Brannen
- * @since 3.1
+ * 作为MappingRegistry 的value 最简单的Method,执行参数,委托对象、的封装形式
  */
 public class HandlerMethod {
 
 	/** Logger that is available to subclasses. */
 	protected static final Log logger = LogFactory.getLog(HandlerMethod.class);
 
+	/**
+	 * 执行委托的对象 即Controller对象
+	 */
 	private final Object bean;
 
+	/**
+	 * 持有当前Controller 的BeanFactory
+	 */
 	@Nullable
 	private final BeanFactory beanFactory;
 
+	/**
+	 * 当前Controller类型
+	 */
 	private final Class<?> beanType;
 
+	/**
+	 * 当前方法对象
+	 */
 	private final Method method;
 
+	/**
+	 * 获得最适合当前子类执行的泛型桥接方法对象
+	 */
 	private final Method bridgedMethod;
 
+	/**
+	 * 方法参数
+	 */
 	private final MethodParameter[] parameters;
 
+	/**
+	 * 解析 @ResponseStatus 注解得到的状态码
+	 */
 	@Nullable
 	private HttpStatus responseStatus;
 
+	/**
+	 * 解析 @ResponseStatus 注解得到的信息
+	 */
 	@Nullable
 	private String responseStatusReason;
 
@@ -90,6 +100,9 @@ public class HandlerMethod {
 	@Nullable
 	private volatile List<Annotation[][]> interfaceParameterAnnotations;
 
+	/**
+	 * 方法签名 目前没啥用 只是展示
+	 */
 	private final String description;
 
 
@@ -106,6 +119,7 @@ public class HandlerMethod {
 		this.bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
 		this.parameters = initMethodParameters();
 		evaluateResponseStatus();
+		// 初始化描述 格式是 beanName#methodName(param1,param2,...)
 		this.description = initDescription(this.beanType, this.method);
 	}
 
@@ -144,8 +158,12 @@ public class HandlerMethod {
 		this.beanType = ClassUtils.getUserClass(beanType);
 		this.method = method;
 		this.bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
+		// 解析 当前handler 方法参数
 		this.parameters = initMethodParameters();
+		// 检查当前方法上是否有 @ResponseStatus 注解
+		// 如果有 记录在当前方法上
 		evaluateResponseStatus();
+		// 生成描述
 		this.description = initDescription(this.beanType, this.method);
 	}
 
@@ -279,7 +297,7 @@ public class HandlerMethod {
 	}
 
 	/**
-	 * Return the actual return value type.
+	 * 获取返回值类型
 	 */
 	public MethodParameter getReturnValueType(@Nullable Object returnValue) {
 		return new ReturnValueMethodParameter(returnValue);

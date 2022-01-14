@@ -280,23 +280,22 @@ public class ControllerAdviceBean implements Ordered {
 
 
 	/**
-	 * Find beans annotated with {@link ControllerAdvice @ControllerAdvice} in the
-	 * given {@link ApplicationContext} and wrap them as {@code ControllerAdviceBean}
-	 * instances.
-	 * <p>As of Spring Framework 5.2, the {@code ControllerAdviceBean} instances
-	 * in the returned list are sorted using {@link OrderComparator#sort(List)}.
-	 * @see #getOrder()
-	 * @see OrderComparator
-	 * @see Ordered
+	 * 查询带有@ControllerAdvice 注解的Bean 并将其包装成ControllerAdviceBean对象
+	 * 并根据排序返回
 	 */
 	public static List<ControllerAdviceBean> findAnnotatedBeans(ApplicationContext context) {
+		// 获得BeanFactory
 		ListableBeanFactory beanFactory = context;
 		if (context instanceof ConfigurableApplicationContext) {
-			// Use internal BeanFactory for potential downcast to ConfigurableBeanFactory above
+			// 默认获得的ApplicationContext 一定是Configurable 类型的
 			beanFactory = ((ConfigurableApplicationContext) context).getBeanFactory();
 		}
+		// 新建一个ArrayList 保存包装对象
 		List<ControllerAdviceBean> adviceBeans = new ArrayList<>();
 		for (String name : BeanFactoryUtils.beanNamesForTypeIncludingAncestors(beanFactory, Object.class)) {
+			// 过滤使用了ScopeProxy 的类
+			// 因为类型推断是一个耗费性能的动作
+			// 而ScopeProxy 类型一定是 ScopeProxyFactoryBean 可以进行适当的剪枝 提升性能
 			if (!ScopedProxyUtils.isScopedTarget(name)) {
 				ControllerAdvice controllerAdvice = beanFactory.findAnnotationOnBean(name, ControllerAdvice.class);
 				if (controllerAdvice != null) {

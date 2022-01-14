@@ -25,9 +25,9 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * Convenient base class for {@link ImportSelector} implementations that select imports
- * based on an {@link AdviceMode} value from an annotation (such as the {@code @Enable*}
- * annotations).
+ * {@link ImportSelector} 实现的便捷基类
+ * ，它根据注解（例如 {@code @Enable} 注释）
+ * 中的 {@link AdviceMode} 值选择导入.
  *
  * @author Chris Beams
  * @since 3.1

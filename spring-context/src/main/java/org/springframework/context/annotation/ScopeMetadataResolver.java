@@ -29,14 +29,11 @@ import org.springframework.beans.factory.config.BeanDefinition;
 public interface ScopeMetadataResolver {
 
 	/**
-	 * Resolve the {@link ScopeMetadata} appropriate to the supplied
-	 * bean {@code definition}.
-	 * <p>Implementations can of course use any strategy they like to
-	 * determine the scope metadata, but some implementations that spring
-	 * immediately to mind might be to use source level annotations
-	 * present on {@link BeanDefinition#getBeanClassName() the class} of the
-	 * supplied {@code definition}, or to use metadata present in the
-	 * {@link BeanDefinition#attributeNames()} of the supplied {@code definition}.
+	 * 解析适用于提供的 bean {@code definition} 的 {@link ScopeMetadata}。
+	 * <p>实现当然可以使用他们喜欢的任何策略来确定范围元数据,
+	 * 但立即想到的一些实现可能是使用提供的 {@code definition}
+	 * 的 {@link BeanDefinitiongetBeanClassName() 类} 上存在的源级注解，
+	 * 或者使用 {@link BeanDefinitionattributeNames()} 中存在的元数据提供的 {@code definition}。
 	 * @param definition the target bean definition
 	 * @return the relevant scope metadata; never {@code null}
 	 */

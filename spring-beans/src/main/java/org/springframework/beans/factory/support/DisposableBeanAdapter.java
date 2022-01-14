@@ -107,13 +107,16 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 				(this.bean instanceof DisposableBean && !beanDefinition.isExternallyManagedDestroyMethod("destroy"));
 		this.nonPublicAccessAllowed = beanDefinition.isNonPublicAccessAllowed();
 		this.acc = acc;
+		// 判断是否设置了destroy-method @Bean 会设置成 INFER_METHOD
 		String destroyMethodName = inferDestroyMethodIfNecessary(bean, beanDefinition);
 		if (destroyMethodName != null && !(this.invokeDisposableBean && "destroy".equals(destroyMethodName)) &&
 				!beanDefinition.isExternallyManagedDestroyMethod(destroyMethodName)) {
 			this.destroyMethodName = destroyMethodName;
+			// 从当前类结构尝试推断出 destroy-method
 			Method destroyMethod = determineDestroyMethod(destroyMethodName);
 			if (destroyMethod == null) {
-				if (beanDefinition.isEnforceDestroyMethod()) {
+				// 当设置强制执行销毁方法时 如果没有销毁方法要报错
+				if (beanDefinition. isEnforceDestroyMethod()) {
 					throw new BeanDefinitionValidationException("Could not find a destroy method named '" +
 							destroyMethodName + "' on bean with name '" + beanName + "'");
 				}
@@ -121,15 +124,18 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 			else {
 				if (destroyMethod.getParameterCount() > 0) {
 					Class<?>[] paramTypes = destroyMethod.getParameterTypes();
+					// 推断出来的 destroy method 只允许有一个参数 该参数必须是 boolean 类型
 					if (paramTypes.length > 1) {
 						throw new BeanDefinitionValidationException("Method '" + destroyMethodName + "' of bean '" +
 								beanName + "' has more than one parameter - not supported as destroy method");
 					}
+
 					else if (paramTypes.length == 1 && boolean.class != paramTypes[0]) {
 						throw new BeanDefinitionValidationException("Method '" + destroyMethodName + "' of bean '" +
 								beanName + "' has a non-boolean parameter - not supported as destroy method");
 					}
 				}
+				// 获得当前方法名对应的接口方法
 				destroyMethod = ClassUtils.getInterfaceMethodIfPossible(destroyMethod);
 			}
 			this.destroyMethod = destroyMethod;
@@ -179,12 +185,13 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 
 	@Override
 	public void destroy() {
+		// 执行JSR 330注解的销毁方法
 		if (!CollectionUtils.isEmpty(this.beanPostProcessors)) {
 			for (DestructionAwareBeanPostProcessor processor : this.beanPostProcessors) {
 				processor.postProcessBeforeDestruction(this.bean, this.beanName);
 			}
 		}
-
+		// 尝试查找 DisposableBean接口的destroy 方法执行
 		if (this.invokeDisposableBean) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Invoking destroy() on bean with name '" + this.beanName + "'");
@@ -210,11 +217,12 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 				}
 			}
 		}
-
+		// 尝试执行 设置的destroy-method 方法 入参默认为true
 		if (this.destroyMethod != null) {
 			invokeCustomDestroyMethod(this.destroyMethod);
 		}
 		else if (this.destroyMethodName != null) {
+			//
 			Method methodToInvoke = determineDestroyMethod(this.destroyMethodName);
 			if (methodToInvoke != null) {
 				invokeCustomDestroyMethod(ClassUtils.getInterfaceMethodIfPossible(methodToInvoke));
@@ -241,6 +249,9 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 
 	@Nullable
 	private Method findDestroyMethod(String name) {
+		// 如果允许访问非public 方法
+		// 则销毁方法可以是private 不过会优先从public 方法找 在从private 方法找 并且还会查找父类
+		// 否则只从public 方法找 并且不查找父类
 		return (this.nonPublicAccessAllowed ?
 				BeanUtils.findMethodWithMinimalParameters(this.bean.getClass(), name) :
 				BeanUtils.findMethodWithMinimalParameters(this.bean.getClass().getMethods(), name));
@@ -331,29 +342,30 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 
 
 	/**
-	 * If the current value of the given beanDefinition's "destroyMethodName" property is
-	 * {@link AbstractBeanDefinition#INFER_METHOD}, then attempt to infer a destroy method.
-	 * Candidate methods are currently limited to public, no-arg methods named "close" or
-	 * "shutdown" (whether declared locally or inherited). The given BeanDefinition's
-	 * "destroyMethodName" is updated to be null if no such method is found, otherwise set
-	 * to the name of the inferred method. This constant serves as the default for the
-	 * {@code @Bean#destroyMethod} attribute and the value of the constant may also be
-	 * used in XML within the {@code <bean destroy-method="">} or {@code
-	 * <beans default-destroy-method="">} attributes.
+	 * 如果给定 beanDefinition 的“destroyMethodName”属性的当前值为
+	 * {@link AbstractBeanDefinition#INFER_METHOD}, 然后尝试推断一个销毁方法.
+	 * 候选方法目前仅限于公开, 名为“close”或“shutdown”的无参数方法
+	 * （无论是在本地声明还是继承）. 如果没有找到这样的方法，给定 BeanDefinition
+	 * 的“destroyMethodName”更新为 null，否则设置
+	 * 到推断方法的名称。此常量
+	 * {@code @Bean#destroyMethod}属性和常量的值也可以在 XML
+	 * 中的 {@code <bean destroy-method="">} 或 {@code <beans default-destroy-method="">} 属性中使用.
 	 * <p>Also processes the {@link java.io.Closeable} and {@link java.lang.AutoCloseable}
 	 * interfaces, reflectively calling the "close" method on implementing beans as well.
 	 */
 	@Nullable
 	private static String inferDestroyMethodIfNecessary(Object bean, RootBeanDefinition beanDefinition) {
+		// 判断生命周期的销毁方法
 		String destroyMethodName = beanDefinition.resolvedDestroyMethodName;
 		if (destroyMethodName == null) {
 			destroyMethodName = beanDefinition.getDestroyMethodName();
+			// 先看有没有destroy 方法
 			if (AbstractBeanDefinition.INFER_METHOD.equals(destroyMethodName) ||
 					(destroyMethodName == null && bean instanceof AutoCloseable)) {
-				// Only perform destroy method inference or Closeable detection
-				// in case of the bean not explicitly implementing DisposableBean
 				destroyMethodName = null;
 				if (!(bean instanceof DisposableBean)) {
+					// 对@Bean 的扩展, 当destroy-method 内容为INFER_METHOD 时 默认找 close 和shutdown 方法
+					// 前提是这个Bean 不能实现接口 DisposableBean
 					try {
 						destroyMethodName = bean.getClass().getMethod(CLOSE_METHOD_NAME).getName();
 					}
@@ -367,6 +379,7 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 					}
 				}
 			}
+			// 获得
 			beanDefinition.resolvedDestroyMethodName = (destroyMethodName != null ? destroyMethodName : "");
 		}
 		return (StringUtils.hasLength(destroyMethodName) ? destroyMethodName : null);

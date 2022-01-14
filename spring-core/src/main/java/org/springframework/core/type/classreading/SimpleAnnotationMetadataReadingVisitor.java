@@ -141,7 +141,7 @@ final class SimpleAnnotationMetadataReadingVisitor extends ClassVisitor {
 		String[] memberClassNames = StringUtils.toStringArray(this.memberClassNames);
 		MethodMetadata[] annotatedMethods = this.annotatedMethods.toArray(new MethodMetadata[0]);
 		MergedAnnotations annotations = MergedAnnotations.of(this.annotations);
-		this.metadata = new SimpleAnnotationMetadata(this.className, this.access,
+		this.metadata = new  SimpleAnnotationMetadata(this.className, this.access,
 				this.enclosingClassName, this.superClassName, this.independentInnerClass,
 				this.interfaceNames, memberClassNames, annotatedMethods, annotations);
 	}

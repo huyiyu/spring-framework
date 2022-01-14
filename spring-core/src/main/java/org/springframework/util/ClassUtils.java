@@ -888,10 +888,7 @@ public abstract class ClassUtils {
 	}
 
 	/**
-	 * Return the user-defined class for the given class: usually simply the given
-	 * class, but the original class in case of a CGLIB-generated subclass.
-	 * @param clazz the class to check
-	 * @return the user-defined class
+	 * 如果当前类是Cglib代理 返回未被代理的类 (parent)
 	 */
 	public static Class<?> getUserClass(Class<?> clazz) {
 		if (clazz.getName().contains(CGLIB_CLASS_SEPARATOR)) {
@@ -1238,25 +1235,19 @@ public abstract class ClassUtils {
 	}
 
 	/**
-	 * Given a method, which may come from an interface, and a target class used
-	 * in the current reflective invocation, find the corresponding target method
-	 * if there is one. E.g. the method may be {@code IFoo.bar()} and the
-	 * target class may be {@code DefaultFoo}. In this case, the method may be
-	 * {@code DefaultFoo.bar()}. This enables attributes on that method to be found.
-	 * <p><b>NOTE:</b> In contrast to {@link org.springframework.aop.support.AopUtils#getMostSpecificMethod},
-	 * this method does <i>not</i> resolve Java 5 bridge methods automatically.
-	 * Call {@link org.springframework.core.BridgeMethodResolver#findBridgedMethod}
-	 * if bridge method resolution is desirable (e.g. for obtaining metadata from
-	 * the original method definition).
-	 * <p><b>NOTE:</b> Since Spring 3.1.1, if Java security settings disallow reflective
-	 * access (e.g. calls to {@code Class#getDeclaredMethods} etc, this implementation
-	 * will fall back to returning the originally provided method.
-	 * @param method the method to be invoked, which may come from an interface
-	 * @param targetClass the target class for the current invocation
+	 * 给定一个可能来自接口的方法，以及当前反射调用中使用的目标类，
+	 * 如果有，则找到对应的目标方法。例如。方法可能是 {@code IFoo.bar()}，
+	 * 目标类可能是 {@code DefaultFoo}。在这种情况下，方法可能是
+	 * {@code DefaultFoo.bar()}。这使得可以找到该方法的属性。
+	 * 注意： 与 {@link org.springframework.aop.support.AopUtilsgetMostSpecificMethod}
+	 * 相比，此方法<i>not<i> 自动解析 Java 5 桥接方法。如果需要桥方法解析（例如，从原始方法定义中获取元数据），
+	 * 请调用 {@link org.springframework.core.BridgeMethodResolverfindBridgedMethod}。
+	 * 注意： 从 Spring 3.1.1 开始，如果 Java 安全设置不允许反射访问
+	 * （例如调用 {@code ClassgetDeclaredMethods} 等，此实现将回退到返回最初提供的方法。
+	 * @param method 当前可能来自接口的方法
+	 * @param targetClass 当前可能的目标类
 	 * (may be {@code null} or may not even implement the method)
-	 * @return the specific target method, or the original method if the
-	 * {@code targetClass} does not implement it
-	 * @see #getInterfaceMethodIfPossible
+	 * @return 预期目标方法或当前方法如果目标类没有实现这个方法
 	 */
 	public static Method getMostSpecificMethod(Method method, @Nullable Class<?> targetClass) {
 		if (targetClass != null && targetClass != method.getDeclaringClass() && isOverridable(method, targetClass)) {

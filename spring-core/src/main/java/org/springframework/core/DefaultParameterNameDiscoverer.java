@@ -41,10 +41,13 @@ public class DefaultParameterNameDiscoverer extends PrioritizedParameterNameDisc
 
 	public DefaultParameterNameDiscoverer() {
 		// TODO Remove this conditional inclusion when upgrading to Kotlin 1.5, see https://youtrack.jetbrains.com/issue/KT-44594
+		// 当发现kotlin 包 提供额外的参数名称扫描器
 		if (KotlinDetector.isKotlinReflectPresent() && !NativeDetector.inNativeImage()) {
 			addDiscoverer(new KotlinReflectionParameterNameDiscoverer());
 		}
+		// 通过类型信息获取当前getParameter0 的结果 如果此处要有结果必须支持参数编译
 		addDiscoverer(new StandardReflectionParameterNameDiscoverer());
+		// 缓存 + ASM 读取参数原先的名称
 		addDiscoverer(new LocalVariableTableParameterNameDiscoverer());
 	}
 

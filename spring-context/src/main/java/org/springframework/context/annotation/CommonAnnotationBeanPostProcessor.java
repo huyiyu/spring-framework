@@ -155,7 +155,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	private static final Set<Class<? extends Annotation>> resourceAnnotationTypes = new LinkedHashSet<>(4);
 
 	static {
-		webServiceRefClass = loadAnnotationType("javax.xml.ws.WebServiceRef");
+		webServiceRefClass = loadAnnotationType("javax.xml.ws.·");
 		ejbClass = loadAnnotationType("javax.ejb.EJB");
 
 		resourceAnnotationTypes.add(Resource.class);

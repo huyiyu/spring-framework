@@ -119,11 +119,11 @@ final class AttributeMethods {
 	}
 
 	/**
-	 * Check if values from the given annotation can be safely accessed without causing
-	 * any {@link TypeNotPresentException TypeNotPresentExceptions}. In particular,
-	 * this method is designed to cover Google App Engine's late arrival of such
-	 * exceptions for {@code Class} values (instead of the more typical early
-	 * {@code Class.getAnnotations() failure}.
+	 * 检查给定注释中的值是否可以安全访问而不会导致任何
+	 * {@link TypeNotPresentException TypeNotPresentExceptions}.特别是，
+	 * 他的方法旨在涵盖 Google App Engine
+	 * 对 {@code Class} 值的此类异常的迟到
+	 * 而不是更典型的早期 {@code Class.getAnnotations() 失败}。
 	 * @param annotation the annotation to validate
 	 * @throws IllegalStateException if a declared {@code Class} attribute could not be read
 	 * @see #isValid(Annotation)

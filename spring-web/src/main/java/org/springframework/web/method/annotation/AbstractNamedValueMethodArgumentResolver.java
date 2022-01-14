@@ -95,33 +95,42 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 	@Nullable
 	public final Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
-
+		// 解析名称 默认值 是否required 信息
 		NamedValueInfo namedValueInfo = getNamedValueInfo(parameter);
+		// 如果当前参数类型时Optional 类型 将oarameterType 设置为null
 		MethodParameter nestedParameter = parameter.nestedIfOptional();
-
+		// 支持对name 做EL表达式解析
 		Object resolvedName = resolveEmbeddedValuesAndExpressions(namedValueInfo.name);
 		if (resolvedName == null) {
 			throw new IllegalArgumentException(
 					"Specified name must not resolve to null: [" + namedValueInfo.name + "]");
 		}
-
+		// 通过name 找到value 子类自己去编写value 匹配的方法
 		Object arg = resolveName(resolvedName.toString(), nestedParameter, webRequest);
 		if (arg == null) {
+			// 当获取到的参数为空时 检查是否有默认value 如果有直接食用默认value
 			if (namedValueInfo.defaultValue != null) {
+				// 默认的value 同样支持 EL表达式
 				arg = resolveEmbeddedValuesAndExpressions(namedValueInfo.defaultValue);
 			}
 			else if (namedValueInfo.required && !nestedParameter.isOptional()) {
+				// 发现默认值为空但是是require 抛异常
 				handleMissingValue(namedValueInfo.name, nestedParameter, webRequest);
 			}
+			// 发现内容为空 此时如果参数是包装类 使用null 如果是基础类型 抛异常
 			arg = handleNullValue(namedValueInfo.name, arg, nestedParameter.getNestedParameterType());
 		}
+		// 如果arg 是空字符串 且有defaultValue 尝试获取defaultValue 支持EL表达式
 		else if ("".equals(arg) && namedValueInfo.defaultValue != null) {
 			arg = resolveEmbeddedValuesAndExpressions(namedValueInfo.defaultValue);
 		}
 
+		// 当前请求范围内带有@InitBinder
 		if (binderFactory != null) {
+			// 执行所有符合条件的 @InitBinder方法
 			WebDataBinder binder = binderFactory.createBinder(webRequest, null, namedValueInfo.name);
 			try {
+				// 使用类型转化器将当前arg 转化成期望类型 Convertor 相关扩展
 				arg = binder.convertIfNecessary(arg, parameter.getParameterType(), parameter);
 			}
 			catch (ConversionNotSupportedException ex) {
@@ -132,13 +141,13 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 				throw new MethodArgumentTypeMismatchException(arg, ex.getRequiredType(),
 						namedValueInfo.name, parameter, ex.getCause());
 			}
-			// Check for null value after conversion of incoming argument value
+			// 有可能经历了类型转化器又把值修改成空了,此处注意
 			if (arg == null && namedValueInfo.defaultValue == null &&
 					namedValueInfo.required && !nestedParameter.isOptional()) {
 				handleMissingValue(namedValueInfo.name, nestedParameter, webRequest);
 			}
 		}
-
+		// 这个方法提供子类增强,但目前只有@PathVariable 使用了它
 		handleResolvedValue(arg, namedValueInfo.name, parameter, mavContainer, webRequest);
 
 		return arg;
@@ -151,17 +160,20 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 		NamedValueInfo namedValueInfo = this.namedValueInfoCache.get(parameter);
 		if (namedValueInfo == null) {
 			namedValueInfo = createNamedValueInfo(parameter);
+			// 当注解没有配置名称时 尝试采用反射 或ASM去获取参数名称 以及设置合适的默认值
 			namedValueInfo = updateNamedValueInfo(parameter, namedValueInfo);
+			// 缓存参数解析的结果 方便下一次掉哟个
 			this.namedValueInfoCache.put(parameter, namedValueInfo);
 		}
 		return namedValueInfo;
 	}
 
 	/**
-	 * Create the {@link NamedValueInfo} object for the given method parameter. Implementations typically
-	 * retrieve the method annotation by means of {@link MethodParameter#getParameterAnnotation(Class)}.
-	 * @param parameter the method parameter
-	 * @return the named value information
+	 * 子类对不同的实现解析不同的内容 获取参数名称,默认值,以及是否required 然后返回NameValueInfo对象
+	 * 各个不同的实现注解的要求各不一样 要根据各自注解的类型做不同的实现的策略模式 但返回值相似 一定拥有
+	 * 参数名称,默认值,以及是否required
+	 * @param parameter 方法参数对象 由HandlerMethod保存
+	 * @return nameValueInfo对象
 	 */
 	protected abstract NamedValueInfo createNamedValueInfo(MethodParameter parameter);
 
@@ -170,7 +182,10 @@ public abstract class AbstractNamedValueMethodArgumentResolver implements Handle
 	 */
 	private NamedValueInfo updateNamedValueInfo(MethodParameter parameter, NamedValueInfo info) {
 		String name = info.name;
+		// 当解析的参数名称没有时 使用
 		if (info.name.isEmpty()) {
+			// 通过默认的参数名称扫描器扫描参数名称 默认参数扫描器是组合对象
+			// 包含基于JDK反射 以及 ASM 两个扫描器 最终确定参数名称 如果此时还没有
 			name = parameter.getParameterName();
 			if (name == null) {
 				throw new IllegalArgumentException(

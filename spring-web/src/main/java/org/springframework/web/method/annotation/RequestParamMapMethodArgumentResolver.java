@@ -74,13 +74,16 @@ public class RequestParamMapMethodArgumentResolver implements HandlerMethodArgum
 
 		ResolvableType resolvableType = ResolvableType.forMethodParameter(parameter);
 
+		// 当入参类型是 MultiValueMap 考虑当前请求是类似文件上传的 多value 结构
 		if (MultiValueMap.class.isAssignableFrom(parameter.getParameterType())) {
-			// MultiValueMap
+			// 获取value的泛型类型
 			Class<?> valueType = resolvableType.as(MultiValueMap.class).getGeneric(1).resolve();
+			// 泛型类型是MultipartPartFile
 			if (valueType == MultipartFile.class) {
 				MultipartRequest multipartRequest = MultipartResolutionDelegate.resolveMultipartRequest(webRequest);
 				return (multipartRequest != null ? multipartRequest.getMultiFileMap() : new LinkedMultiValueMap<>(0));
 			}
+			// 泛型类型是 Part 是tomcat 的文件上传规范
 			else if (valueType == Part.class) {
 				HttpServletRequest servletRequest = webRequest.getNativeRequest(HttpServletRequest.class);
 				if (servletRequest != null && MultipartResolutionDelegate.isMultipartRequest(servletRequest)) {
@@ -94,6 +97,7 @@ public class RequestParamMapMethodArgumentResolver implements HandlerMethodArgum
 				return new LinkedMultiValueMap<>(0);
 			}
 			else {
+				// 否则通通当成字符串key value 获取
 				Map<String, String[]> parameterMap = webRequest.getParameterMap();
 				MultiValueMap<String, String> result = new LinkedMultiValueMap<>(parameterMap.size());
 				parameterMap.forEach((key, values) -> {
@@ -106,12 +110,14 @@ public class RequestParamMapMethodArgumentResolver implements HandlerMethodArgum
 		}
 
 		else {
-			// Regular Map
+			// 如果是普通map 获取value 泛型
 			Class<?> valueType = resolvableType.asMap().getGeneric(1).resolve();
+			// 是 MultipartFile
 			if (valueType == MultipartFile.class) {
 				MultipartRequest multipartRequest = MultipartResolutionDelegate.resolveMultipartRequest(webRequest);
 				return (multipartRequest != null ? multipartRequest.getFileMap() : new LinkedHashMap<>(0));
 			}
+			// 泛型类型是 Part 是tomcat 的文件上传规范
 			else if (valueType == Part.class) {
 				HttpServletRequest servletRequest = webRequest.getNativeRequest(HttpServletRequest.class);
 				if (servletRequest != null && MultipartResolutionDelegate.isMultipartRequest(servletRequest)) {
@@ -127,6 +133,7 @@ public class RequestParamMapMethodArgumentResolver implements HandlerMethodArgum
 				return new LinkedHashMap<>(0);
 			}
 			else {
+				// 普通map 只取第一个元素 其他丢弃
 				Map<String, String[]> parameterMap = webRequest.getParameterMap();
 				Map<String, String> result = CollectionUtils.newLinkedHashMap(parameterMap.size());
 				parameterMap.forEach((key, values) -> {

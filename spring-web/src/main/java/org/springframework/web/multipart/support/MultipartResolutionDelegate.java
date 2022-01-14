@@ -103,6 +103,8 @@ public final class MultipartResolutionDelegate {
 				return null;
 			}
 			if (multipartRequest == null) {
+				// 文件上传是在multipartResolver 干完的
+				// 这里直接获得file 这个file 声称到系统的某个临时目录了
 				multipartRequest = new StandardMultipartHttpServletRequest(request);
 			}
 			return multipartRequest.getFile(name);

@@ -128,13 +128,17 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
 
 		parameter = parameter.nestedIfOptional();
+		// 使用messageConverters 读取内容
 		Object arg = readWithMessageConverters(webRequest, parameter, parameter.getNestedGenericParameterType());
+		// 根据对象类型获取名称
 		String name = Conventions.getVariableNameForParameter(parameter);
 
 		if (binderFactory != null) {
+			// 执行json的 initBinder 将获取的名称作为判断标准
 			WebDataBinder binder = binderFactory.createBinder(webRequest, arg, name);
 			if (arg != null) {
 				validateIfApplicable(binder, parameter);
+				// 判断执行Initbinder过程中有没有出现异常
 				if (binder.getBindingResult().hasErrors() && isBindExceptionRequired(binder, parameter)) {
 					throw new MethodArgumentNotValidException(parameter, binder.getBindingResult());
 				}
@@ -143,16 +147,17 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 				mavContainer.addAttribute(BindingResult.MODEL_KEY_PREFIX + name, binder.getBindingResult());
 			}
 		}
-
+		// 包装上Optional类型
 		return adaptArgumentIfNecessary(arg, parameter);
 	}
 
 	@Override
 	protected <T> Object readWithMessageConverters(NativeWebRequest webRequest, MethodParameter parameter,
 			Type paramType) throws IOException, HttpMediaTypeNotSupportedException, HttpMessageNotReadableException {
-
+		// 获取原生request
 		HttpServletRequest servletRequest = webRequest.getNativeRequest(HttpServletRequest.class);
 		Assert.state(servletRequest != null, "No HttpServletRequest");
+		// 转换成ServletHttpRequest
 		ServletServerHttpRequest inputMessage = new ServletServerHttpRequest(servletRequest);
 
 		Object arg = readWithMessageConverters(inputMessage, parameter, paramType);
@@ -168,6 +173,16 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 		return (requestBody != null && requestBody.required() && !parameter.isOptional());
 	}
 
+	/**
+	 * ResponseBody 注解 处理逻辑,开发人员需要重点关注
+	 * @param returnValue 调用 InvokeForRequest 返回的值
+	 * @param returnType 返回值的类型管理,转成了MethodParam类型
+	 * @param mavContainer 当前ModelAndView 对象容器,为后续生成ModelAndView 做统一处理
+	 * @param webRequest the current request
+	 * @throws IOException
+	 * @throws HttpMediaTypeNotAcceptableException
+	 * @throws HttpMessageNotWritableException
+	 */
 	@Override
 	public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
 			ModelAndViewContainer mavContainer, NativeWebRequest webRequest)

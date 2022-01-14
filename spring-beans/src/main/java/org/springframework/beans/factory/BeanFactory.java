@@ -64,8 +64,8 @@ import org.springframework.lang.Nullable;
  * the immediate parent factory will be asked. Beans in this factory instance
  * are supposed to override beans of the same name in any parent factory.
  *
- * <p>Bean factory implementations should support the standard bean lifecycle interfaces
- * as far as possible. The full set of initialization methods and their standard order is:
+ * <p>Bean 工厂实现应尽可能支持标准的 bean 生命周期接口.
+ * 全套初始化方法及其标准顺序是:
  * <ol>
  * <li>BeanNameAware's {@code setBeanName}
  * <li>BeanClassLoaderAware's {@code setBeanClassLoader}
@@ -117,36 +117,31 @@ import org.springframework.lang.Nullable;
 public interface BeanFactory {
 
 	/**
-	 * Used to dereference a {@link FactoryBean} instance and distinguish it from
-	 * beans <i>created</i> by the FactoryBean. For example, if the bean named
-	 * {@code myJndiObject} is a FactoryBean, getting {@code &myJndiObject}
-	 * will return the factory, not the instance returned by the factory.
+	 * 用于区分 工厂Bean创建出来的Bean
+	 * 如果一个Bean的名字是工厂Bean(即以&开头)那么getBean 返回的是工厂Bean 而不是工厂Bean返回的Bean
 	 */
 	String FACTORY_BEAN_PREFIX = "&";
 
 
 	/**
-	 * Return an instance, which may be shared or independent, of the specified bean.
-	 * <p>This method allows a Spring BeanFactory to be used as a replacement for the
-	 * Singleton or Prototype design pattern. Callers may retain references to
-	 * returned objects in the case of Singleton beans.
-	 * <p>Translates aliases back to the corresponding canonical bean name.
-	 * <p>Will ask the parent factory if the bean cannot be found in this factory instance.
-	 * @param name the name of the bean to retrieve
-	 * @return an instance of the bean
+	 * 返回一个共享的或者独立的Bean
+	 * <p>这个方法允许Spring BeanFactory 使用单例或原型设计模式 对于单例调用者可以保留对象的饮用
+	 * <p>自动将别名转化为规范名称
+	 * <p>将会请求父工厂如果该类找不到
+	 * @param name 要检索的Bean名称
+	 * @return 当前Bean对象
 	 * @throws NoSuchBeanDefinitionException if there is no bean with the specified name
 	 * @throws BeansException if the bean could not be obtained
 	 */
 	Object getBean(String name) throws BeansException;
 
 	/**
-	 * Return an instance, which may be shared or independent, of the specified bean.
-	 * <p>Behaves the same as {@link #getBean(String)}, but provides a measure of type
-	 * safety by throwing a BeanNotOfRequiredTypeException if the bean is not of the
-	 * required type. This means that ClassCastException can't be thrown on casting
-	 * the result correctly, as can happen with {@link #getBean(String)}.
-	 * <p>Translates aliases back to the corresponding canonical bean name.
-	 * <p>Will ask the parent factory if the bean cannot be found in this factory instance.
+	 * 返回一个实例，该实例可以是指定bean的共享或独立的。
+	 * <p>与{@link getBean（String）}相同，但是如果Bean不是必需的类型，
+	 * 则通过抛出BeanNotOfRequiredTypeException来提供类型安全性的度量。
+	 * 这意味着不能正确地投射结果时抛出ClassCastException，就像{@link getBean（String）}那样。
+	 * <p>将别名转换回相应的规范bean名称。
+	 * <p>将询问父工厂，如果在此工厂实例中找不到该bean。
 	 * @param name the name of the bean to retrieve
 	 * @param requiredType type the bean must match; can be an interface or superclass
 	 * @return an instance of the bean
@@ -360,12 +355,10 @@ public interface BeanFactory {
 	Class<?> getType(String name, boolean allowFactoryBeanInit) throws NoSuchBeanDefinitionException;
 
 	/**
-	 * Return the aliases for the given bean name, if any.
-	 * <p>All of those aliases point to the same bean when used in a {@link #getBean} call.
-	 * <p>If the given name is an alias, the corresponding original bean name
-	 * and other aliases (if any) will be returned, with the original bean name
-	 * being the first element in the array.
-	 * <p>Will ask the parent factory if the bean cannot be found in this factory instance.
+	 * 返回给定bean名称的别名（如果有）。
+	 * <p>在{@link getBean}调用中使用时，所有这些别名都指向同一个bean。
+	 * <p>如果给定名称是别名，则将返回相应的原始bean名称和其他别名（如果有），原始bean名称是数组中的第一个元素。
+	 * <p>将询问父工厂是否在该工厂实例中找不到该bean。
 	 * @param name the bean name to check for aliases
 	 * @return the aliases, or an empty array if none
 	 * @see #getBean

@@ -192,12 +192,12 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	}
 
 	/**
-	 * Register the default filter for {@link Component @Component}.
-	 * <p>This will implicitly register all annotations that have the
-	 * {@link Component @Component} meta-annotation including the
-	 * {@link Repository @Repository}, {@link Service @Service}, and
-	 * {@link Controller @Controller} stereotype annotations.
-	 * <p>Also supports Java EE 6's {@link javax.annotation.ManagedBean} and
+	 * 注册默认过滤器 {@link Component @Component}.
+	 * <p>这将隐式注册所有具有
+	 * {@link Component @Component} 元注解包含
+	 * {@link Repository @Repository}, {@link Service @Service}, 和
+	 * {@link Controller @Controller}.
+	 * <p>还支持 Java EE 6's {@link javax.annotation.ManagedBean} 和
 	 * JSR-330's {@link javax.inject.Named} annotations, if available.
 	 *
 	 */

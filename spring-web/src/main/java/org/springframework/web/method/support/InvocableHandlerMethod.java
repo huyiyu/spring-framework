@@ -35,9 +35,12 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.HandlerMethod;
 
 /**
- * Extension of {@link HandlerMethod} that invokes the underlying method with
- * argument values resolved from the current HTTP request through a list of
- * {@link HandlerMethodArgumentResolver}.
+ * InvokeHandlerMethod 提供了Springmvc 方法反射的统一实现
+ * 对于方法反射,首先需要拿到 Method 对象,即 requestMapping 方法
+ * 其次需要拿到执行 当前方法的 Object 对象,即Controller 对象
+ * Invoke 内部封装了这一系列的复杂程度 仅提供最简单的InvokeForRequest 外部调用
+ * 执行逻辑包含,获取方法入参 ->
+ *
  *
  * @author Rossen Stoyanchev
  * @author Juergen Hoeller
@@ -133,11 +136,12 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	@Nullable
 	public Object invokeForRequest(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
-
+		// 解析入参
 		Object[] args = getMethodArgumentValues(request, mavContainer, providedArgs);
 		if (logger.isTraceEnabled()) {
 			logger.trace("Arguments: " + Arrays.toString(args));
 		}
+		// 获取入参 执行invoke
 		return doInvoke(args);
 	}
 
@@ -146,6 +150,14 @@ public class InvocableHandlerMethod extends HandlerMethod {
 	 * argument values and falling back to the configured argument resolvers.
 	 * <p>The resulting array will be passed into {@link #doInvoke}.
 	 * @since 5.1.2
+	 */
+	/**
+	 * 获取方法调用参数,调用参数处理器处理得到符合要求的调用参数
+	 * @param request 当前请求
+	 * @param mavContainer 在参数处理过程中 做临时保存数据在不同的对象见
+	 * @param providedArgs
+	 * @return
+	 * @throws Exception
 	 */
 	protected Object[] getMethodArgumentValues(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
@@ -163,10 +175,13 @@ public class InvocableHandlerMethod extends HandlerMethod {
 			if (args[i] != null) {
 				continue;
 			}
+			// 组合模式来判断当前参数在内部列表调用 supportsParameter 到底符合不符合
 			if (!this.resolvers.supportsParameter(parameter)) {
+				// 由于已经包含所有参数解析器,所以一旦某个参数解析不通过说明参数不合理,那么抛出异常
 				throw new IllegalStateException(formatArgumentError(parameter, "No suitable resolver"));
 			}
 			try {
+				// 组合模式处理入参,将所有参数分配给不同的参数解析器处理
 				args[i] = this.resolvers.resolveArgument(parameter, mavContainer, request, this.dataBinderFactory);
 			}
 			catch (Exception ex) {
@@ -182,9 +197,11 @@ public class InvocableHandlerMethod extends HandlerMethod {
 		}
 		return args;
 	}
-
 	/**
-	 * Invoke the handler method with the given argument values.
+	 * 在handlerMethod 入参准备好之后 直接反射调用 处理调用异常
+	 * @param args
+	 * @return
+	 * @throws Exception
 	 */
 	@Nullable
 	protected Object doInvoke(Object... args) throws Exception {

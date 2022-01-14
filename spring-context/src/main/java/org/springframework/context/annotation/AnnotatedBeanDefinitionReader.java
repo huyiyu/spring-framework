@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
 
 /**
  * Convenient adapter for programmatic registration of bean classes.
- *
+ * 方便的适配器，用于以编程方式注册 bean 类。
  * <p>This is an alternative to {@link ClassPathBeanDefinitionScanner}, applying
  * the same resolution of annotations but for explicitly registered classes only.
  *
@@ -126,7 +126,7 @@ public class AnnotatedBeanDefinitionReader {
 
 
 	/**
-	 * Register one or more component classes to be processed.
+	 * 注册一个或多个要处理的组件类.
 	 * <p>Calls to {@code register} are idempotent; adding the same
 	 * component class more than once has no additional effect.
 	 * @param componentClasses one or more component classes,
@@ -234,15 +234,13 @@ public class AnnotatedBeanDefinitionReader {
 	}
 
 	/**
-	 * Register a bean from the given bean class, deriving its metadata from
-	 * class-declared annotations.
+	 * 从给定的 bean 类注册一个 bean，从类声明的注释中获取其元数据。
 	 * @param beanClass the class of the bean
-	 * @param name an explicit name for the bean
-	 * @param qualifiers specific qualifier annotations to consider, if any,
-	 * in addition to qualifiers at the bean class level
-	 * @param supplier a callback for creating an instance of the bean
+	 * @param name bean 的显式名称
+	 * @param qualifiers 除了 bean 类级别的限定符之外，要考虑的特定限定符注释（如果有）
+	 * @param supplier 用于创建 bean 实例的回调
 	 * (may be {@code null})
-	 * @param customizers one or more callbacks for customizing the factory's
+	 * @param customizers 用于自定义工厂的一个或多个回调
 	 * {@link BeanDefinition}, e.g. setting a lazy-init or primary flag
 	 * @since 5.0
 	 */
@@ -251,7 +249,7 @@ public class AnnotatedBeanDefinitionReader {
 			@Nullable BeanDefinitionCustomizer[] customizers) {
 
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass);
-		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
+ 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
 		}
 

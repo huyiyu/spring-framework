@@ -52,6 +52,9 @@ public class SessionAttributesHandler {
 
 	private final Set<Class<?>> attributeTypes = new HashSet<>();
 
+	/**
+	 * 解析HandlerMethod 上的 @SessionAttributes 获得的key信息
+	 */
 	private final Set<String> knownAttributeNames = Collections.newSetFromMap(new ConcurrentHashMap<>(4));
 
 	private final SessionAttributeStore sessionAttributeStore;
@@ -67,7 +70,7 @@ public class SessionAttributesHandler {
 	public SessionAttributesHandler(Class<?> handlerType, SessionAttributeStore sessionAttributeStore) {
 		Assert.notNull(sessionAttributeStore, "SessionAttributeStore may not be null");
 		this.sessionAttributeStore = sessionAttributeStore;
-
+		// 解析 sessionAttribute 注解
 		SessionAttributes ann = AnnotatedElementUtils.findMergedAnnotation(handlerType, SessionAttributes.class);
 		if (ann != null) {
 			Collections.addAll(this.attributeNames, ann.names());

@@ -27,7 +27,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.core.annotation.AliasFor;
 
 /**
- * Annotation that marks a method as a listener for application events.
+ * 将方法标记为应用程序事件侦听器的注解.
  *
  * <p>If an annotated method supports a single event type, the method may
  * declare a single parameter that reflects the event type to listen to.
@@ -53,11 +53,9 @@ import org.springframework.core.annotation.AliasFor;
  * <em>composed annotations</em>.
  *
  * <h3>Exception Handling</h3>
- * <p>While it is possible for an event listener to declare that it
- * throws arbitrary exception types, any checked exceptions thrown
- * from an event listener will be wrapped in an
+ * <p>虽然事件侦听器可以声明它抛出任意的异常类型，但从事件侦听器抛出的任何已检查异常都将被包装在一个
  * {@link java.lang.reflect.UndeclaredThrowableException UndeclaredThrowableException}
- * since the event publisher can only handle runtime exceptions.
+ * 因为事件发布者只能处理运行时异常。
  *
  * <h3>Asynchronous Listeners</h3>
  * <p>If you want a particular listener to process events asynchronously, you

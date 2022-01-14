@@ -34,10 +34,9 @@ import org.springframework.lang.Nullable;
 interface AnnotationsProcessor<C, R> {
 
 	/**
-	 * Called when an aggregate is about to be processed. This method may return
-	 * a {@code non-null} result to short-circuit any further processing.
-	 * @param context the context information relevant to the processor
-	 * @param aggregateIndex the aggregate index about to be processed
+	 *在即将处理聚合时调用. 此方法可能会返回 {@code non-null} 结果以短路任何进一步的处理。
+	 * @param context 与处理器相关的上下文信息
+	 * @param aggregateIndex 即将被处理的聚合索引
 	 * @return a {@code non-null} result if no further processing is required
 	 */
 	@Nullable

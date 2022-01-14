@@ -60,7 +60,7 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	@Nullable
 	private AnnotatedElement qualifiedElement;
 
-	/** Determines if the definition needs to be re-merged. */
+	/** 确定是否需要重新合并定义. */
 	volatile boolean stale;
 
 	boolean allowCaching = true;
@@ -70,51 +70,57 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	@Nullable
 	volatile ResolvableType targetType;
 
-	/** Package-visible field for caching the determined Class of a given bean definition. */
+	/** 用于记录给定 bean 定义的确定类的包可见字段。 */
 	@Nullable
 	volatile Class<?> resolvedTargetType;
 
-	/** Package-visible field for caching if the bean is a factory bean. */
+	/** 如果 bean 是工厂 bean，则用于记录的包可见字段。 */
 	@Nullable
 	volatile Boolean isFactoryBean;
 
-	/** Package-visible field for caching the return type of a generically typed factory method. */
+	/** 用于缓存泛型工厂方法的返回类型的包可见字段. */
 	@Nullable
 	volatile ResolvableType factoryMethodReturnType;
 
-	/** Package-visible field for caching a unique factory method candidate for introspection. */
+	/** 用于记录唯一工厂方法候选者的包可见字段以供自省. */
 	@Nullable
 	volatile Method factoryMethodToIntrospect;
 
-	/** Package-visible field for caching a resolved destroy method name (also for inferred). */
+	/** 用于记录解析的销毁方法名称的包可见字段（也用于推断）
+	 * 该字段当设置了Destroy-Method 时生效。
+	 * 值可能是close 或 shutdown 或自定义设置的destroy-method
+	 * . */
 	@Nullable
 	volatile String resolvedDestroyMethodName;
 
-	/** Common lock for the four constructor fields below. */
+	/** 下面四个构造函数字段的公共锁。 */
 	final Object constructorArgumentLock = new Object();
 
-	/** Package-visible field for caching the resolved constructor or factory method. */
+	/** 用于缓存解析的构造函数或工厂方法的包可见字段。 */
 	@Nullable
 	Executable resolvedConstructorOrFactoryMethod;
 
-	/** Package-visible field that marks the constructor arguments as resolved. */
+	/** 将构造函数参数标记为已解析的包可见字段. */
 	boolean constructorArgumentsResolved = false;
 
-	/** Package-visible field for caching fully resolved constructor arguments. */
+	/** 用于缓存完全解析的构造函数参数的包可见字段. */
 	@Nullable
 	Object[] resolvedConstructorArguments;
 
-	/** Package-visible field for caching partly prepared constructor arguments. */
+	/** 用于记录部分准备好的构造函数参数的包可见字段. */
 	@Nullable
 	Object[] preparedConstructorArguments;
 
-	/** Common lock for the two post-processing fields below. */
+	/** 下面两个后处理字段的公共锁。 */
 	final Object postProcessingLock = new Object();
 
-	/** Package-visible field that indicates MergedBeanDefinitionPostProcessor having been applied. */
+	/**
+	 *表示已经执行过 MergedBeanDefinitionPostProcessor.
+	 * 这个环节一般用于扫描@Autowired 或 @Resources 等注解
+	 * */
 	boolean postProcessed = false;
 
-	/** Package-visible field that indicates a before-instantiation post-processor having kicked in. */
+	/** 包可见字段，指示实例化前的后处理器已启动. */
 	@Nullable
 	volatile Boolean beforeInstantiationResolved;
 

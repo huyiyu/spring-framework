@@ -108,12 +108,9 @@ public interface HandlerMapping {
 	String INTROSPECT_TYPE_LEVEL_MAPPING = HandlerMapping.class.getName() + ".introspectTypeLevelMapping";
 
 	/**
-	 * Name of the {@link HttpServletRequest} attribute that contains the URI
-	 * templates map, mapping variable names to values.
-	 * <p>Note: This attribute is not required to be supported by all
-	 * HandlerMapping implementations. URL-based HandlerMappings will
-	 * typically support it, but handlers should not necessarily expect
-	 * this request attribute to be present in all scenarios.
+	 * 包含 URI 模板映射的 {@link HttpServletRequest} 属性的名称，将变量名称映射到值。
+	 * <p>注意：并非所有 HandlerMapping 实现都支持此属性。
+	 * 基于 URL 的 HandlerMappings 通常会支持它，但处理程序不必期望此请求属性在所有场景中都存在。
 	 */
 	String URI_TEMPLATE_VARIABLES_ATTRIBUTE = HandlerMapping.class.getName() + ".uriTemplateVariables";
 
@@ -128,11 +125,8 @@ public interface HandlerMapping {
 	String MATRIX_VARIABLES_ATTRIBUTE = HandlerMapping.class.getName() + ".matrixVariables";
 
 	/**
-	 * Name of the {@link HttpServletRequest} attribute that contains the set of
-	 * producible MediaTypes applicable to the mapped handler.
-	 * <p>Note: This attribute is not required to be supported by all
-	 * HandlerMapping implementations. Handlers should not necessarily expect
-	 * this request attribute to be present in all scenarios.
+	 * {@link HttpServletRequest} 属性的名称，其中包含适用于映射处理程序的可生产 MediaType 集。
+	 * <p>注意：并非所有 HandlerMapping 实现都支持此属性。处理程序不必期望此请求属性在所有场景中都存在。
 	 */
 	String PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE = HandlerMapping.class.getName() + ".producibleMediaTypes";
 

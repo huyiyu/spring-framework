@@ -123,7 +123,7 @@ public abstract class AbstractBeanFactoryBasedTargetSourceCreator
 	 * @param beanName the name of the target bean
 	 * @return the internal BeanFactory to be used
 	 */
-	protected DefaultListableBeanFactory getInternalBeanFactoryForBean(String beanName) {
+	protected DefaultListableBeanFactory  getInternalBeanFactoryForBean(String beanName) {
 		synchronized (this.internalBeanFactories) {
 			DefaultListableBeanFactory internalBeanFactory = this.internalBeanFactories.get(beanName);
 			if (internalBeanFactory == null) {

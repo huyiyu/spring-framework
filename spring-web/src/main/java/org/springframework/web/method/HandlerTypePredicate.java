@@ -70,20 +70,25 @@ public final class HandlerTypePredicate implements Predicate<Class<?>> {
 
 	@Override
 	public boolean test(Class<?> controllerType) {
+		// 不含选择器就是: 当前ControllerAdvice 仅有注解并没有填属性 此时直接返回true
 		if (!hasSelectors()) {
 			return true;
 		}
+		// 否则就是包含选择器了
 		else if (controllerType != null) {
+			// basePackage 表示当前Controller 要在ControllerAdvice 规定的 baskPackage 下
 			for (String basePackage : this.basePackages) {
 				if (controllerType.getName().startsWith(basePackage)) {
 					return true;
 				}
 			}
+			// assignableTypes 表示当前 Controller 类型要在 assignableTypes
 			for (Class<?> clazz : this.assignableTypes) {
 				if (ClassUtils.isAssignable(clazz, controllerType)) {
 					return true;
 				}
 			}
+			// annotations 表示当前@Controller 需要有某个注解
 			for (Class<? extends Annotation> annotationClass : this.annotations) {
 				if (AnnotationUtils.findAnnotation(controllerType, annotationClass) != null) {
 					return true;

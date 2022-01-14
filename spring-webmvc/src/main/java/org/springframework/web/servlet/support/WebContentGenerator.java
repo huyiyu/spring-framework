@@ -75,22 +75,39 @@ public abstract class WebContentGenerator extends WebApplicationObjectSupport {
 	/** HTTP method "POST". */
 	public static final String METHOD_POST = "POST";
 
+	/**
+	 * 由于 Pragma 在 HTTP 响应中的行为没有确切规范，所以不能可靠替代 HTTP/1.1 中通用首部 Cache-Control，
+	 * 尽管在请求中，假如 Cache-Control 不存在的话，它的行为与 Cache-Control:
+	 * no-cache 一致。建议只在需要兼容 HTTP/1.0 客户端的场合下应用 Pragma 首部
+	 */
 	private static final String HEADER_PRAGMA = "Pragma";
 
+	/**
+	 * 与浏览器缓存相关 只是当前HTTP在某个阶段后过期
+	 */
 	private static final String HEADER_EXPIRES = "Expires";
-
+	/**
+	 * 浏览器缓存相关 指示当前缓存处理的策略
+	 */
 	protected static final String HEADER_CACHE_CONTROL = "Cache-Control";
 
 
 	/** Set of supported HTTP methods. */
 	@Nullable
 	private Set<String> supportedMethods;
-
+	/**
+	 * 允许的http方法
+	 * 逗号分隔,开启默认严格校验时为 GET,POST,HEAD,OPTIONS
+	 * 否则 扣掉TRACE的所有方法
+	 */
 	@Nullable
 	private String allowHeader;
 
 	private boolean requireSession = false;
 
+	/**
+	 * 对浏览器响应头 cache-controll的控制
+	 */
 	@Nullable
 	private CacheControl cacheControl;
 
@@ -115,20 +132,20 @@ public abstract class WebContentGenerator extends WebApplicationObjectSupport {
 
 
 	/**
-	 * Create a new WebContentGenerator which supports
-	 * HTTP methods GET, HEAD and POST by default.
+	 * 不要被这个空参构造误导了,根本没有用实际调用
 	 */
 	public WebContentGenerator() {
 		this(true);
 	}
 
 	/**
-	 * Create a new WebContentGenerator.
-	 * @param restrictDefaultSupportedMethods {@code true} if this
-	 * generator should support HTTP methods GET, HEAD and POST by default,
-	 * or {@code false} if it should be unrestricted
+	 *
+	 * 默认HandlerAdapter 使用此构造 不限制方法
+	 * @param restrictDefaultSupportedMethods {@code true} 如果为true 只允许get post head options
+	 * 一般设置成false
 	 */
 	public WebContentGenerator(boolean restrictDefaultSupportedMethods) {
+		// 实际改代码不执行限制默认方法而是都添加
 		if (restrictDefaultSupportedMethods) {
 			this.supportedMethods = new LinkedHashSet<>(4);
 			this.supportedMethods.add(METHOD_GET);
@@ -170,9 +187,15 @@ public abstract class WebContentGenerator extends WebApplicationObjectSupport {
 		return (this.supportedMethods != null ? StringUtils.toStringArray(this.supportedMethods) : null);
 	}
 
+	/**
+	 * 初始化默认允许的方法,当 supportedMethods 为空时 接受所有非 trace 方法
+	 * 当 supportedMethods 有内容时,确保一定添加OPTIONS 方法(没有手动添加) 并接受supportMethods 方法列表
+	 */
 	private void initAllowHeader() {
 		Collection<String> allowedMethods;
+		// 如果默认支持的方法列表为空,去掉trace方法其他全部允许
 		if (this.supportedMethods == null) {
+
 			allowedMethods = new ArrayList<>(HttpMethod.values().length - 1);
 			for (HttpMethod method : HttpMethod.values()) {
 				if (method != HttpMethod.TRACE) {
@@ -180,26 +203,21 @@ public abstract class WebContentGenerator extends WebApplicationObjectSupport {
 				}
 			}
 		}
+		// 如果不为空 且包含OPTIONS 方法,直接获取支持的方法作为允许的方法
 		else if (this.supportedMethods.contains(HttpMethod.OPTIONS.name())) {
 			allowedMethods = this.supportedMethods;
 		}
+		// 如果不包含OPTIONS 方法,除了已经支持的方法,要手动添加OPTIONS
 		else {
 			allowedMethods = new ArrayList<>(this.supportedMethods);
 			allowedMethods.add(HttpMethod.OPTIONS.name());
 
 		}
+		// 使用逗号隔开组成字符串
 		this.allowHeader = StringUtils.collectionToCommaDelimitedString(allowedMethods);
 	}
 
-	/**
-	 * Return the "Allow" header value to use in response to an HTTP OPTIONS request
-	 * based on the configured {@link #setSupportedMethods supported methods} also
-	 * automatically adding "OPTIONS" to the list even if not present as a supported
-	 * method. This means subclasses don't have to explicitly list "OPTIONS" as a
-	 * supported method as long as HTTP OPTIONS requests are handled before making a
-	 * call to {@link #checkRequest(HttpServletRequest)}.
-	 * @since 4.3
-	 */
+
 	@Nullable
 	protected String getAllowHeader() {
 		return this.allowHeader;
@@ -368,20 +386,20 @@ public abstract class WebContentGenerator extends WebApplicationObjectSupport {
 	}
 
 
+
 	/**
-	 * Check the given request for supported methods and a required session, if any.
-	 * @param request current HTTP request
-	 * @throws ServletException if the request cannot be handled because a check failed
-	 * @since 4.2
+	 * 检查当前请求方法是否在允许列表中
+	 * @param request
+	 * @throws ServletException
 	 */
 	protected final void checkRequest(HttpServletRequest request) throws ServletException {
-		// Check whether we should support the request method.
+		//检查请求方法
 		String method = request.getMethod();
 		if (this.supportedMethods != null && !this.supportedMethods.contains(method)) {
 			throw new HttpRequestMethodNotSupportedException(method, this.supportedMethods);
 		}
 
-		// Check whether a session is required.
+		// 检查当前是否允许session 并且当前请求有没有session
 		if (this.requireSession && request.getSession(false) == null) {
 			throw new HttpSessionRequiredException("Pre-existing session required but none found");
 		}
@@ -398,15 +416,18 @@ public abstract class WebContentGenerator extends WebApplicationObjectSupport {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Applying default " + getCacheControl());
 			}
+			// 设置响应缓存策略
 			applyCacheControl(response, this.cacheControl);
 		}
 		else {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Applying default cacheSeconds=" + this.cacheSeconds);
 			}
+			// 设置缓存时间此流程大部分废弃的方法
 			applyCacheSeconds(response, this.cacheSeconds);
 		}
 		if (this.varyByRequestHeaders != null) {
+			//			设置vary头
 			for (String value : getVaryRequestHeadersToAdd(response, this.varyByRequestHeaders)) {
 				response.addHeader("Vary", value);
 			}
@@ -414,7 +435,7 @@ public abstract class WebContentGenerator extends WebApplicationObjectSupport {
 	}
 
 	/**
-	 * Set the HTTP Cache-Control header according to the given settings.
+	 * 设置浏览器缓存的处理策略 响应头
 	 * @param response current HTTP response
 	 * @param cacheControl the pre-configured cache control settings
 	 * @since 4.2
@@ -476,12 +497,10 @@ public abstract class WebContentGenerator extends WebApplicationObjectSupport {
 
 
 	/**
-	 * Check and prepare the given request and response according to the settings
-	 * of this generator.
-	 * @see #checkRequest(HttpServletRequest)
-	 * @see #prepareResponse(HttpServletResponse)
-	 * @deprecated as of 4.2, since the {@code lastModified} flag is effectively ignored,
-	 * with a must-revalidate header only generated if explicitly configured
+	 * 检查并准备response  两个动作合并
+	 * 检查 的是allowMethod
+	 * 准备的是缓存策略
+	 * 方法已经废弃
 	 */
 	@Deprecated
 	protected final void checkAndPrepare(
@@ -582,10 +601,9 @@ public abstract class WebContentGenerator extends WebApplicationObjectSupport {
 	}
 
 	/**
-	 * Prevent the response from being cached.
-	 * Only called in HTTP 1.0 compatibility mode.
-	 * <p>See {@code https://www.mnot.net/cache_docs}.
-	 * @deprecated as of 4.2, in favor of {@link #applyCacheControl}
+	 * 防止响应被缓存。仅在 HTTP 1.0 兼容模式下调用。
+	 * <p>参见 {@code https:www.mnot.netcache_docs}。
+	 * @deprecated 自 4.2 起，支持 {@link applyCacheControl}
 	 */
 	@Deprecated
 	protected final void preventCaching(HttpServletResponse response) {
@@ -606,7 +624,13 @@ public abstract class WebContentGenerator extends WebApplicationObjectSupport {
 		}
 	}
 
-
+	/**
+	 * 添加vary 响应头告诉浏览器内容协商应
+	 * 使用哪些响应头
+	 * @param response
+	 * @param varyByRequestHeaders
+	 * @return
+	 */
 	private Collection<String> getVaryRequestHeadersToAdd(HttpServletResponse response, String[] varyByRequestHeaders) {
 		if (!response.containsHeader(HttpHeaders.VARY)) {
 			return Arrays.asList(varyByRequestHeaders);

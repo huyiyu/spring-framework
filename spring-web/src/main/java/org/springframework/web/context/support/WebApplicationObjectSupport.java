@@ -48,6 +48,10 @@ public abstract class WebApplicationObjectSupport extends ApplicationObjectSuppo
 
 
 	@Override
+	/**
+	 * 实现了ServletContextAware 的接口 但是由于initApplicationContext 过程已经
+	 * 把ServletContext 顺便初始化了所以此处这个方法不执行
+	 */
 	public final void setServletContext(ServletContext servletContext) {
 		if (servletContext != this.servletContext) {
 			this.servletContext = servletContext;

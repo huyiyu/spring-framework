@@ -307,11 +307,17 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 			@Qualifier("mvcResourceUrlProvider") ResourceUrlProvider resourceUrlProvider) {
 
 		RequestMappingHandlerMapping mapping = createRequestMappingHandlerMapping();
+		// 设置排序
 		mapping.setOrder(0);
+		// 设置初始化拦截器,
+		// 1.请求前默认往requestAttribute放入 conversionService
+		// 2.请求前默认往requestAttribute放入 resourceUrlProvider
 		mapping.setInterceptors(getInterceptors(conversionService, resourceUrlProvider));
+		//设置管理请求 mediaType 对象,会直接影响RequestMappingInfo生成策略
 		mapping.setContentNegotiationManager(contentNegotiationManager);
+		// 设置默认的跨域配置
 		mapping.setCorsConfigurations(getCorsConfigurations());
-
+		//
 		PathMatchConfigurer pathConfig = getPathMatchConfigurer();
 		if (pathConfig.getPatternParser() != null) {
 			mapping.setPatternParser(pathConfig.getPatternParser());
@@ -350,9 +356,8 @@ public class WebMvcConfigurationSupport implements ApplicationContextAware, Serv
 	}
 
 	/**
-	 * Provide access to the shared handler interceptors used to configure
-	 * {@link HandlerMapping} instances with.
-	 * <p>This method cannot be overridden; use {@link #addInterceptors} instead.
+	 * 初始化requestMappiongHandlerMapping 新增两个拦截器
+	 * 这两个拦截器将会在启动后被转化成Springmvc 的拦截器
 	 */
 	protected final Object[] getInterceptors(
 			FormattingConversionService mvcConversionService,

@@ -65,6 +65,10 @@ import org.springframework.web.util.pattern.PathPattern;
  */
 public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMethodMapping<RequestMappingInfo> {
 
+	/**
+	 * 提供处理 Options 方法的 Method
+	 * 在当前类加载时初始化
+	 */
 	private static final Method HTTP_OPTIONS_HANDLE_METHOD;
 
 	static {
@@ -84,7 +88,8 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 
 
 	/**
-	 * Get the URL path patterns associated with the supplied {@link RequestMappingInfo}.
+	 * 这个方法也即将废弃 目前并没有使用
+	 * 本意提供给getDirectPaths 使用
 	 */
 	@Override
 	@SuppressWarnings("deprecation")
@@ -92,16 +97,21 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 		return info.getPatternValues();
 	}
 
+	/**
+	 * 获得不带参数的请求路径
+	 * @param info 对应的RequestMappingInfo 即@RequestMapping 注解解析的信息
+     * @return 返回解析的直接路径
+	 */
 	@Override
 	protected Set<String> getDirectPaths(RequestMappingInfo info) {
 		return info.getDirectPaths();
 	}
 
 	/**
-	 * Check if the given RequestMappingInfo matches the current request and
-	 * return a (potentially new) instance with conditions that match the
-	 * current request -- for example with a subset of URL patterns.
-	 * @return an info in case of a match; or {@code null} otherwise.
+	 * 匹配request 是否可以用当前的 requestMappingInfo 处理,如果可以构造Match对象返回,否则返回null
+	 * @param info 对应的RequestMappingInfo 即@RequestMapping 注解解析的信息
+	 * @param request 当前请求的request对象
+	 * @return 如果可以构造Match对象返回,否则返回null
 	 */
 	@Override
 	protected RequestMappingInfo getMatchingMapping(RequestMappingInfo info, HttpServletRequest request) {
@@ -109,7 +119,10 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 	}
 
 	/**
-	 * Provide a Comparator to sort RequestMappingInfos matched to a request.
+	 * 为当前请求提供一个比较器,该比较器是根据request临时生成的
+	 * 用于判断哪个requestMapping 更加适合当前请求
+	 * @param request 当前request 对象
+	 * @return 对应的比较器
 	 */
 	@Override
 	protected Comparator<RequestMappingInfo> getMappingComparator(final HttpServletRequest request) {
@@ -118,17 +131,22 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 
 	@Override
 	protected HandlerMethod getHandlerInternal(HttpServletRequest request) throws Exception {
+		// 这个属性在请求匹配HandlerMethod 成功后设置,此时先移除
 		request.removeAttribute(PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE);
 		try {
+			// 父类实现了通用模板,并留下了比较器扩展,
+			// 请求匹配成功扩展
+			// 请求匹配失败扩展 供子类实现
 			return super.getHandlerInternal(request);
 		}
 		finally {
+			// 移除MEDIA_TYPE_ATTRIBUTE 属性
 			ProducesRequestCondition.clearMediaTypesAttribute(request);
 		}
 	}
 
 	/**
-	 * Expose URI template variables, matrix variables, and producible media types in the request.
+	 * 在请求中公开 URI 模板变量、矩阵变量和可生产的媒体类型。
 	 * @see HandlerMapping#URI_TEMPLATE_VARIABLES_ATTRIBUTE
 	 * @see HandlerMapping#MATRIX_VARIABLES_ATTRIBUTE
 	 * @see HandlerMapping#PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE
@@ -136,8 +154,8 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 	@Override
 	protected void handleMatch(RequestMappingInfo info, String lookupPath, HttpServletRequest request) {
 		super.handleMatch(info, lookupPath, request);
-
 		RequestCondition<?> condition = info.getActivePatternsCondition();
+		//判断路径解析采用什么Condition的方式调用不同的解析方法
 		if (condition instanceof PathPatternsRequestCondition) {
 			extractMatchDetails((PathPatternsRequestCondition) condition, lookupPath, request);
 		}
@@ -161,6 +179,7 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 			uriVariables = Collections.emptyMap();
 		}
 		else {
+			// 新的参数编译指的便是 Matrix_variables 相关的解析
 			PathContainer path = ServletRequestPathUtils.getParsedRequestPath(request).pathWithinApplication();
 			bestPattern = condition.getFirstPattern();
 			PathPattern.PathMatchInfo result = bestPattern.matchAndExtract(path);
@@ -240,16 +259,19 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 		if (helper.isEmpty()) {
 			return null;
 		}
-
+		// 当 http method 不匹配时
 		if (helper.hasMethodsMismatch()) {
+			// 获取所有允许的HttpMethod
 			Set<String> methods = helper.getAllowedMethods();
+			// 如果当前request 是options 请求 使用提供个options 专用的handlerMethod
 			if (HttpMethod.OPTIONS.matches(request.getMethod())) {
 				HttpOptionsHandler handler = new HttpOptionsHandler(methods);
 				return new HandlerMethod(handler, HTTP_OPTIONS_HANDLE_METHOD);
 			}
+			// 如果 当前方法不是option 说明真不支持,直接抛出异常
 			throw new HttpRequestMethodNotSupportedException(request.getMethod(), methods);
 		}
-
+		// 如果是request content-type 不匹配
 		if (helper.hasConsumesMismatch()) {
 			Set<MediaType> mediaTypes = helper.getConsumableMediaTypes();
 			MediaType contentType = null;
@@ -263,12 +285,12 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 			}
 			throw new HttpMediaTypeNotSupportedException(contentType, new ArrayList<>(mediaTypes));
 		}
-
+		// 如果是 response content-type 不匹配
 		if (helper.hasProducesMismatch()) {
 			Set<MediaType> mediaTypes = helper.getProducibleMediaTypes();
 			throw new HttpMediaTypeNotAcceptableException(new ArrayList<>(mediaTypes));
 		}
-
+		// 如果是参数不匹配
 		if (helper.hasParamsMismatch()) {
 			List<String[]> conditions = helper.getParamConditions();
 			throw new UnsatisfiedServletRequestParameterException(conditions, request.getParameterMap());
@@ -279,7 +301,9 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 
 
 	/**
-	 * Aggregate all partial matches and expose methods checking across them.
+	 * 聚合所有部分匹配并公开检查它们的方法。
+	 * 当请求无法匹配到对应的requestMappingInfo时执行
+	 * spring mvc 使用它来为OPTIONS
 	 */
 	private static class PartialMatchHelper {
 
@@ -469,7 +493,7 @@ public abstract class RequestMappingInfoHandlerMapping extends AbstractHandlerMe
 
 
 	/**
-	 * Default handler for HTTP OPTIONS.
+	 * 提供给普通Options 处理嗅探当前请求允许的方法
 	 */
 	private static class HttpOptionsHandler {
 

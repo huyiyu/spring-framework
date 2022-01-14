@@ -440,18 +440,13 @@ public @interface Configuration {
 	String value() default "";
 
 	/**
-	 * Specify whether {@code @Bean} methods should get proxied in order to enforce
-	 * bean lifecycle behavior, e.g. to return shared singleton bean instances even
-	 * in case of direct {@code @Bean} method calls in user code. This feature
-	 * requires method interception, implemented through a runtime-generated CGLIB
-	 * subclass which comes with limitations such as the configuration class and
-	 * its methods not being allowed to declare {@code final}.
-	 * <p>The default is {@code true}, allowing for 'inter-bean references' via direct
-	 * method calls within the configuration class as well as for external calls to
-	 * this configuration's {@code @Bean} methods, e.g. from another configuration class.
-	 * If this is not needed since each of this particular configuration's {@code @Bean}
-	 * methods is self-contained and designed as a plain factory method for container use,
-	 * switch this flag to {@code false} in order to avoid CGLIB subclass processing.
+	 * 指定 {@code @Bean} 方法是否应该被代理以强制执行 bean 生命周期行为,
+	 * e.g. 即使在用户代码中直接调用 {@code @Bean} 方法的情况下，
+	 * 也能返回共享的单例 bean 实例.
+	 * 此功能需要方法拦截, 通过运行时生成的 CGLIB 子类实现，该子类带有一些限制，例如不允许声明 {@code final} 的配置类及其方法。
+	 * <p>默认值为 {@code true}，允许通过配置类中的直接方法调用进行“bean 间引用”以及对此配置的 {@code @Bean} 方法的外部调用，例如来自另一个配置类。
+	 * 如果不需要，因为每个特定配置的 {@code @Bean} 方法都是自包含的，并且设计为容器使用的普通工厂方法，
+	 * 将此标志切换为 {@code false} 以避免 CGLIB 子类处理。
 	 * <p>Turning off bean method interception effectively processes {@code @Bean}
 	 * methods individually like when declared on non-{@code @Configuration} classes,
 	 * a.k.a. "@Bean Lite Mode" (see {@link Bean @Bean's javadoc}). It is therefore

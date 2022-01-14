@@ -263,8 +263,8 @@ public class GenericApplicationContext extends AbstractApplicationContext implem
 	//---------------------------------------------------------------------
 
 	/**
-	 * Do nothing: We hold a single internal BeanFactory and rely on callers
-	 * to register beans through our public methods (or the BeanFactory's).
+	 * 没做什么: 我们拥有一个内部 BeanFactory 并依靠调用者通过我们的公共方法注册 bean
+	 * (或 BeanFactory 的).
 	 * @see #registerBeanDefinition
 	 */
 	@Override
@@ -481,7 +481,7 @@ public class GenericApplicationContext extends AbstractApplicationContext implem
 
 	/**
 	 * {@link RootBeanDefinition} marker subclass for {@code #registerBean} based
-	 * registrations with flexible autowiring for public constructors.
+	 * registrations with flexible autowiring for public constructors·.
 	 */
 	@SuppressWarnings("serial")
 	private static class ClassDerivedBeanDefinition extends RootBeanDefinition {

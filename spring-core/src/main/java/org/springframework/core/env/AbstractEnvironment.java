@@ -412,11 +412,9 @@ public abstract class AbstractEnvironment implements ConfigurableEnvironment {
 	}
 
 	/**
-	 * Validate the given profile, called internally prior to adding to the set of
-	 * active or default profiles.
-	 * <p>Subclasses may override to impose further restrictions on profile syntax.
-	 * @throws IllegalArgumentException if the profile is null, empty, whitespace-only or
-	 * begins with the profile NOT operator (!).
+	 * 验证给定的配置文件，在添加到活动或默认配置文件集之前在内部调用。
+	 * <p>子类可以覆盖以对配置文件语法施加进一步的限制。
+	 * @throws IllegalArgumentException 如果配置文件为空、空、只有空格或以配置文件 NOT 运算符 (!) 开头。
 	 * @see #acceptsProfiles
 	 * @see #addActiveProfile
 	 * @see #setDefaultProfiles

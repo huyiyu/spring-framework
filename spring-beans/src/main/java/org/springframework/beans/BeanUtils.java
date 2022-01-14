@@ -339,7 +339,7 @@ public abstract class BeanUtils {
 	@Nullable
 	public static Method findMethodWithMinimalParameters(Class<?> clazz, String methodName)
 			throws IllegalArgumentException {
-
+		// 优先从public 方法找 再从private 方法找
 		Method targetMethod = findMethodWithMinimalParameters(clazz.getMethods(), methodName);
 		if (targetMethod == null) {
 			targetMethod = findDeclaredMethodWithMinimalParameters(clazz, methodName);
@@ -365,6 +365,7 @@ public abstract class BeanUtils {
 
 		Method targetMethod = findMethodWithMinimalParameters(clazz.getDeclaredMethods(), methodName);
 		if (targetMethod == null && clazz.getSuperclass() != null) {
+			// 通过父类找到销毁方法
 			targetMethod = findDeclaredMethodWithMinimalParameters(clazz.getSuperclass(), methodName);
 		}
 		return targetMethod;
@@ -404,6 +405,7 @@ public abstract class BeanUtils {
 				}
 			}
 		}
+		// 最少参数的销毁方法不能重载 且参数一样多 否则spring 无法选择哪个方法合适
 		if (numMethodsFoundWithCurrentMinimumArgs > 1) {
 			throw new IllegalArgumentException("Cannot resolve method '" + methodName +
 					"' to a unique method. Attempted to resolve to overloaded method with " +

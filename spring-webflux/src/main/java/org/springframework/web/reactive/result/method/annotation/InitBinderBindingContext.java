@@ -87,11 +87,13 @@ class InitBinderBindingContext extends BindingContext {
 			WebExchangeDataBinder dataBinder, ServerWebExchange exchange, SyncInvocableHandlerMethod binderMethod) {
 
 		HandlerResult result = binderMethod.invokeForHandlerResult(exchange, this.binderMethodContext, dataBinder);
+		// @InitBinder 不能有返回值
 		if (result != null && result.getReturnValue() != null) {
 			throw new IllegalStateException(
 					"@InitBinder methods must not return a value (should be void): " + binderMethod);
 		}
 		// Should not happen (no Model argument resolution) ...
+		// 不能再InitBinder 方法中添加属性到ModelAttribute
 		if (!this.binderMethodContext.getModel().asMap().isEmpty()) {
 			throw new IllegalStateException(
 					"@InitBinder methods are not allowed to add model attributes: " + binderMethod);

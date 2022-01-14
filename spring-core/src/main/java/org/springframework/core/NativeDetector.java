@@ -32,6 +32,7 @@ public abstract class NativeDetector {
 
 	/**
 	 * Returns {@code true} if invoked in the context of image building or during image runtime, else {@code false}.
+	 * 这个判断辨别容器是否属于 graalvm 中 该虚拟机允许运行非 JAVA 平台代码 意义是统一运行平台
 	 */
 	public static boolean inNativeImage() {
 		return imageCode;

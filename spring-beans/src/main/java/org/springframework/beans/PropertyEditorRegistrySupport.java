@@ -94,8 +94,8 @@ import org.springframework.util.ClassUtils;
 public class PropertyEditorRegistrySupport implements PropertyEditorRegistry {
 
 	/**
-	 * Boolean flag controlled by a {@code spring.xml.ignore} system property that instructs Spring to
-	 * ignore XML, i.e. to not initialize the XML-related infrastructure.
+	 * 由 {@code spring.xml.ignore} 系统属性控制的布尔标志，
+	 * 指示 Spring 忽略 XML，即不初始化与 XML 相关的基础结构。
 	 * <p>The default is "false".
 	 */
 	private static final boolean shouldIgnoreXml = SpringProperties.getFlag("spring.xml.ignore");

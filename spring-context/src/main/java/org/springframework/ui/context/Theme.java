@@ -19,10 +19,10 @@ package org.springframework.ui.context;
 import org.springframework.context.MessageSource;
 
 /**
- * A Theme can resolve theme-specific messages, codes, file paths, etcetera
- * (e&#46;g&#46; CSS and image files in a web environment).
- * The exposed {@link org.springframework.context.MessageSource} supports
- * theme-specific parameterization and internationalization.
+ * 主题可以解析特定于主题的消息、代码、文件路径等
+ * （e&46;g&46; Web 环境中的 CSS 和图像文件）。
+ * 暴露的 {@link org.springframework.context.MessageSource}
+ * 支持特定主题的参数化和国际化。
  *
  * @author Juergen Hoeller
  * @since 17.06.2003

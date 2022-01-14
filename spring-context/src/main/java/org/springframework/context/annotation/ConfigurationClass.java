@@ -48,6 +48,9 @@ import org.springframework.util.ClassUtils;
  */
 final class ConfigurationClass {
 
+	/**
+	 * beanDefinition 的 AnnotationMetadata
+	 */
 	private final AnnotationMetadata metadata;
 
 	private final Resource resource;

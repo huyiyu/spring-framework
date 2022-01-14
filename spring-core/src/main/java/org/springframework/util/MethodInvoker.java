@@ -285,21 +285,18 @@ public class MethodInvoker {
 
 
 	/**
-	 * Algorithm that judges the match between the declared parameter types of a candidate method
-	 * and a specific list of arguments that this method is supposed to be invoked with.
-	 * <p>Determines a weight that represents the class hierarchy difference between types and
-	 * arguments. A direct match, i.e. type Integer -> arg of class Integer, does not increase
-	 * the result - all direct matches means weight 0. A match between type Object and arg of
-	 * class Integer would increase the weight by 2, due to the superclass 2 steps up in the
-	 * hierarchy (i.e. Object) being the last one that still matches the required type Object.
-	 * Type Number and class Integer would increase the weight by 1 accordingly, due to the
-	 * superclass 1 step up the hierarchy (i.e. Number) still matching the required type Number.
-	 * Therefore, with an arg of type Integer, a constructor (Integer) would be preferred to a
-	 * constructor (Number) which would in turn be preferred to a constructor (Object).
-	 * All argument weights get accumulated.
-	 * <p>Note: This is the algorithm used by MethodInvoker itself and also the algorithm
-	 * used for constructor and factory method selection in Spring's bean container (in case
-	 * of lenient constructor resolution which is the default for regular bean definitions).
+	 * 判断候选方法的声明参数类型与应该使用该方法调用的特定参数列表之间匹配的算法。
+	 * <p>确定表示类型和参数之间的类层次结构差异的权重。直接匹配，
+	 * 即 Integer 类型 -> Integer 类的 arg，不会增加结果 - 所有直接匹配都意味着权重 0。
+	 * 由于超类 2 步，类型 Object 和 Integer 类的 arg 之间的匹配将增加2
+	 * 的权重层次结构中的上层（即对象）是最后一个仍然匹配所需类型对象的对象。
+	 * 类型 Number 和类 Integer 将相应地增加 1 的权重，因为超类 1 在层次结构（即 Number）
+	 * 上升级仍然匹配所需的类型 Number。
+	 * 因此，对于 Integer 类型的 arg，构造函数 (Integer) 将优先于构造函数 (Number)，
+	 * 而构造函数 (Number) 又将优先于构造函数 (Object)。所有参数权重都会累积。
+	 * <p>Note: 这是 MethodInvoker 本身使用的算法，
+	 * 也是 Spring 的 bean 容器中用于构造函数和工厂方法选择的算法
+	 * （在宽松构造函数解析的情况下，这是常规 bean 定义的默认值）。
 	 * @param paramTypes the parameter types to match
 	 * @param args the arguments to match
 	 * @return the accumulated weight for all arguments

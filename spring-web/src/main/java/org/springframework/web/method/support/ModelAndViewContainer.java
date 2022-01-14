@@ -48,7 +48,10 @@ import org.springframework.web.bind.support.SimpleSessionStatus;
  * @since 3.1
  */
 public class ModelAndViewContainer {
-
+	/**
+	 * 配置当发生重定向时,是否仍然使用默认的
+	 * modelMap对象 默认是false 即使用redirectModel
+	 */
 	private boolean ignoreDefaultModelOnRedirect = false;
 
 	@Nullable

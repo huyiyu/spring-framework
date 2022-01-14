@@ -31,14 +31,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.StringValueResolver;
 
 /**
- * Simple implementation of the {@link AliasRegistry} interface.
- * <p>Serves as base class for
- * {@link org.springframework.beans.factory.support.BeanDefinitionRegistry}
- * implementations.
- *
- * @author Juergen Hoeller
- * @author Qimiao Chen
- * @since 2.5.2
+ * 别名注册器
+ * 配合接口对内部属性aliasMap 的CRUD
  */
 public class SimpleAliasRegistry implements AliasRegistry {
 
@@ -46,9 +40,17 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	/** Map from alias to canonical name. */
+	/**
+	 * key: 别名
+	 * value: 对应的名称,可能也是别名,或最终规范名称
+	 */
 	private final Map<String, String> aliasMap = new ConcurrentHashMap<>(16);
 
-
+	/**
+	 * 同义词注册,本质上使用同义词更好理解,因为本质上是认为某个词可以用某个alias 代替
+	 * @param name 原名称
+	 * @param alias 要注册的同义词
+	 */
 	@Override
 	public void registerAlias(String name, String alias) {
 		Assert.hasText(name, "'name' must not be empty");
@@ -86,7 +88,8 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	}
 
 	/**
-	 * Determine whether alias overriding is allowed.
+	 * 是否允许同义词覆盖,当不允许同义词覆盖时,如果出现一个同义词
+	 * 已经注册 会抛出异常,默认是允许同义词覆盖的
 	 * <p>Default is {@code true}.
 	 */
 	protected boolean allowAliasOverriding() {
@@ -94,9 +97,11 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	}
 
 	/**
-	 * Determine whether the given name has the given alias registered.
-	 * @param name the name to check
-	 * @param alias the alias to look for
+	 * 判断当前名称是对应给到的别名,
+	 * 查询该操作需要递归 因为,同义词系统是树状结构 使用单 map 维护
+	 * 链表最后一个节点一般为beanName
+	 * @param name 某个名称
+	 * @param alias 某个别名
 	 * @since 4.2.1
 	 */
 	public boolean hasAlias(String name, String alias) {
@@ -121,6 +126,9 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	}
 
 	@Override
+	/**
+	 * 获取一个别名的所有别名,使用内部递归方法获取
+	 */
 	public String[] getAliases(String name) {
 		List<String> result = new ArrayList<>();
 		synchronized (this.aliasMap) {
@@ -130,9 +138,10 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	}
 
 	/**
-	 * Transitively retrieve all aliases for the given name.
-	 * @param name the target name to find aliases for
-	 * @param result the resulting aliases list
+	 * 传递取回所有别名(使用递归的方式取回,最终添加到取回的List里面,不能取回被当作别名的name)
+	 * 本质上是获取指向链表的所有前驱节点
+	 * @param name 当前名称
+	 * @param result 对应的同义词 结果List
 	 */
 	private void retrieveAliases(String name, List<String> result) {
 		this.aliasMap.forEach((alias, registeredName) -> {
@@ -144,10 +153,9 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	}
 
 	/**
-	 * Resolve all alias target names and aliases registered in this
-	 * registry, applying the given {@link StringValueResolver} to them.
-	 * <p>The value resolver may for example resolve placeholders
-	 * in target bean names and even in alias names.
+	 * 解析在此注册表中注册的所有别名目标名称和别名,这个方法全局没有用 不要被他吓到了
+	 * applying the given {@link StringValueResolver} to them.
+	 * <p>例如，值解析器可以解析目标 bean 名称甚至别名中的占位符。
 	 * @param valueResolver the StringValueResolver to apply
 	 */
 	public void resolveAliases(StringValueResolver valueResolver) {
@@ -185,11 +193,11 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	}
 
 	/**
-	 * Check whether the given name points back to the given alias as an alias
-	 * in the other direction already, catching a circular reference upfront
-	 * and throwing a corresponding IllegalStateException.
-	 * @param name the candidate name
-	 * @param alias the candidate alias
+	 * 检查是否环状匹配,这是不允许的
+	 * 即 A>>B 且 B>>>A
+	 * 可以通过判断是否互为别名
+	 * @param name 当前名称
+	 * @param alias 对应的同义词
 	 * @see #registerAlias
 	 * @see #hasAlias
 	 */
@@ -202,7 +210,7 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	}
 
 	/**
-	 * Determine the raw name, resolving aliases to canonical names.
+	 * 获取别名的最终节点 通常是个beanName
 	 * @param name the user-specified name
 	 * @return the transformed name
 	 */

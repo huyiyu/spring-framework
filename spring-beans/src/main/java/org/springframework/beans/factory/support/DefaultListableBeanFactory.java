@@ -136,53 +136,71 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	}
 
 
-	/** Map from serialized id to factory instance. */
+	/** 从序列化 id 到工厂实例的映射. */
 	private static final Map<String, Reference<DefaultListableBeanFactory>> serializableFactories =
 			new ConcurrentHashMap<>(8);
 
-	/** Optional id for this factory, for serialization purposes. */
+	/** 此工厂的可选 ID，用于序列化目的. */
 	@Nullable
 	private String serializationId;
 
-	/** Whether to allow re-registration of a different definition with the same name. */
+	/** 是否允许覆盖注册具有相同名称的不同 BeanDefinition. */
 	private boolean allowBeanDefinitionOverriding = true;
 
-	/** Whether to allow eager class loading even for lazy-init beans. */
+	/**即使对于lazy-init bean，
+	 * 是否也允许主动加载类。
+	 * 默认打开,允许后,每次获取类型时会默认进行BeanDefinitionMap
+	 * 合并到MergedBeanDefinitinMap
+	 *
+	 */
 	private boolean allowEagerClassLoading = true;
 
-	/** Optional OrderComparator for dependency Lists and arrays. */
+	/**
+	 * 排序比较器,会在AnnotatedBeanDefinitionReader 注册默认Bean阶段设置
+	 * 逻辑是先比较 PriorityOrdered
+	 * 再比较 Orderd 有注解优先
+	 * 都相同就比较order大小 小的优先
+	 * */
 	@Nullable
 	private Comparator<Object> dependencyComparator;
 
 	/** Resolver to use for checking if a bean definition is an autowire candidate. */
+	/** 自动装配候选者处理器**/
 	private AutowireCandidateResolver autowireCandidateResolver = SimpleAutowireCandidateResolver.INSTANCE;
 
-	/** Map from dependency type to corresponding autowired value. */
+	/** Map from dependency type to corresponding autowired value. 提供不加载到Spring 但可以解决依赖的对象 */
 	private final Map<Class<?>, Object> resolvableDependencies = new ConcurrentHashMap<>(16);
 
-	/** Map of bean definition objects, keyed by bean name. */
+	/** bean 定义对象的映射，以 bean 名称为键. */
 	private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);
 
-	/** Map from bean name to merged BeanDefinitionHolder. */
+	/** 从 bean 名称映射到合并的 BeanDefinitionHolder. */
 	private final Map<String, BeanDefinitionHolder> mergedBeanDefinitionHolders = new ConcurrentHashMap<>(256);
 
-	/** Map of singleton and non-singleton bean names, keyed by dependency type. */
+	/**
+	 * 所有的（单例和非单例) bean 名称的映射，以依赖类型为键.
+	 *
+	 *
+	 */
 	private final Map<Class<?>, String[]> allBeanNamesByType = new ConcurrentHashMap<>(64);
 
-	/** Map of singleton-only bean names, keyed by dependency type. */
+	/** 单例 bean 名称映射，以依赖类型为键. */
 	private final Map<Class<?>, String[]> singletonBeanNamesByType = new ConcurrentHashMap<>(64);
 
-	/** List of bean definition names, in registration order. */
+	/**bean 定义名称列表，按注册顺序排列. */
 	private volatile List<String> beanDefinitionNames = new ArrayList<>(256);
 
-	/** List of names of manually registered singletons, in registration order. */
+	/**
+	 * 人工(指非spring创建,直接调用registerSingleton)
+	 * 注册的单例名单，按注册顺序排列.
+	 */
 	private volatile Set<String> manualSingletonNames = new LinkedHashSet<>(16);
 
-	/** Cached array of bean definition names in case of frozen configuration. */
+	/**在冻结配置的情况下缓存的 bean 定义名称数组. */
 	@Nullable
 	private volatile String[] frozenBeanDefinitionNames;
 
-	/** Whether bean definition metadata may be cached for all beans. */
+	/** 是否可以为所有 bean 缓存 bean 定义元数据. */
 	private volatile boolean configurationFrozen;
 
 
@@ -203,8 +221,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 
 	/**
-	 * Specify an id for serialization purposes, allowing this BeanFactory to be
-	 * deserialized from this id back into the BeanFactory object, if needed.
+	 * 指定用于序列化目的的 id，如果需要，允许将此 BeanFactory
+	 * 从此 id 反序列化回 BeanFactory 对象。
 	 */
 	public void setSerializationId(@Nullable String serializationId) {
 		if (serializationId != null) {
@@ -217,8 +235,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	}
 
 	/**
-	 * Return an id for serialization purposes, if specified, allowing this BeanFactory
-	 * to be deserialized from this id back into the BeanFactory object, if needed.
+	 * 如果指定，则返回用于序列化目的的 id，如果需要，允许将此
+	 * BeanFactory 从此 id 反序列化回 BeanFactory 对象。
 	 * @since 4.1.2
 	 */
 	@Nullable
@@ -538,8 +556,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	@Override
 	public String[] getBeanNamesForType(@Nullable Class<?> type, boolean includeNonSingletons, boolean allowEagerInit) {
+		// 当流程进行到finishBeanFactoryInitialization 阶段,会冻结BeanDefinition 加入。此时还未冻结,表示未进行到此环节
 		if (!isConfigurationFrozen() || type == null || !allowEagerInit) {
-			return doGetBeanNamesForType(ResolvableType.forRawClass(type), includeNonSingletons, allowEagerInit);
+ 			return doGetBeanNamesForType(ResolvableType.forRawClass(type), includeNonSingletons, allowEagerInit);
 		}
 		Map<Class<?>, String[]> cache =
 				(includeNonSingletons ? this.allBeanNamesByType : this.singletonBeanNamesByType);
@@ -554,6 +573,13 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		return resolvedBeanNames;
 	}
 
+	/**
+	 * 所有的 getBeanNameForType 最终都走到此方法
+	 * @param type spring 封装的类型 class 包装类
+	 * @param includeNonSingletons 是否包含非 singleton 对象
+	 * @param allowEagerInit 是否允许加载未准备好的 未准备好的包含 (没有BeanClass 是lazyinit 全局配置是否允许 AllowEagerClassLoading 并且这个类是一个FactoryBean )
+	 * @return
+	 */
 	private String[] doGetBeanNamesForType(ResolvableType type, boolean includeNonSingletons, boolean allowEagerInit) {
 		List<String> result = new ArrayList<>();
 
@@ -567,6 +593,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 					if (!mbd.isAbstract() && (allowEagerInit ||
 							(mbd.hasBeanClass() || !mbd.isLazyInit() || isAllowEagerClassLoading()) &&
 									!requiresEagerInitForType(mbd.getFactoryBeanName()))) {
+
 						boolean isFactoryBean = isFactoryBean(beanName, mbd);
 						BeanDefinitionHolder dbd = mbd.getDecoratedDefinition();
 						boolean matchFound = false;
@@ -811,6 +838,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		if (containsBeanDefinition(bdName)) {
 			return isAutowireCandidate(beanName, getMergedLocalBeanDefinition(bdName), descriptor, resolver);
 		}
+		// 针对没有Beandefinition 但是有当前对象的Bean 如 env 通过registerSingleton 进来的
 		else if (containsSingleton(beanName)) {
 			return isAutowireCandidate(beanName, new RootBeanDefinition(getType(beanName)), descriptor, resolver);
 		}
@@ -912,20 +940,24 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		if (logger.isTraceEnabled()) {
 			logger.trace("Pre-instantiating singletons in " + this);
 		}
-
 		// Iterate over a copy to allow for init methods which in turn register new bean definitions.
 		// While this may not be part of the regular factory bootstrap, it does otherwise work fine.
+		// 浅拷贝所有BeanDefinition名称
 		List<String> beanNames = new ArrayList<>(this.beanDefinitionNames);
 
 		// Trigger initialization of all non-lazy singleton beans...
 		for (String beanName : beanNames) {
+			// 先走BeanDefinition 的合并,即将当前BeanDefintion 继承关系扁平化折叠到子类上,使用子 BeanDefinition 的属性覆盖默认父 BeanDefinition
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
+			// 只创建 非 抽象的 非懒加载的 单例的 BeanDefinition
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
+				// 如果这个类是一个FactoryBean,从 BeanNameGenerator 可知 FactoryBean 生成前面会有一个 & 符号来判断是否是 FactoryBean
 				if (isFactoryBean(beanName)) {
 					Object bean = getBean(FACTORY_BEAN_PREFIX + beanName);
 					if (bean instanceof FactoryBean) {
 						FactoryBean<?> factory = (FactoryBean<?>) bean;
 						boolean isEagerInit;
+						// 如果FactoryBean 是 SmartFactoryBean 会根据 isEagerInit 方法的返回值判断是否提前加载
 						if (System.getSecurityManager() != null && factory instanceof SmartFactoryBean) {
 							isEagerInit = AccessController.doPrivileged(
 									(PrivilegedAction<Boolean>) ((SmartFactoryBean<?>) factory)::isEagerInit,
@@ -936,17 +968,20 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 									((SmartFactoryBean<?>) factory).isEagerInit());
 						}
 						if (isEagerInit) {
+							// smartFactoryBean 会根据返回值提前加载
+							// 最终都走向 getBean这个方法
 							getBean(beanName);
 						}
 					}
 				}
 				else {
+					// 最终都走向 getBean这个方法
 					getBean(beanName);
 				}
 			}
 		}
-
-		// Trigger post-initialization callback for all applicable beans...
+		// 尝试在所有 Bean 加载初始化完成后对Bean做最终初始化
+		// initializingBean 仅仅能保证自身的property装配完毕, 而这个方法可以保证 property 的 property 也装配完成 此时这个方法执行便不会有空指针
 		for (String beanName : beanNames) {
 			Object singletonInstance = getSingleton(beanName);
 			if (singletonInstance instanceof SmartInitializingSingleton) {
@@ -1159,6 +1194,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	}
 
 	/**
+	 * 记录已经加载过的单例,防止重复创建
 	 * Update the factory's internal set of manual singleton names.
 	 * @param action the modification action
 	 * @param condition a precondition for the modification action
@@ -1880,8 +1916,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 
 	/**
-	 * Minimal id reference to the factory.
-	 * Resolved to the actual factory instance on deserialization.
+	 * 对工厂的最小 ID 引用。
+	 * 解析为反序列化的实际工厂实例。
 	 */
 	private static class SerializedBeanFactoryReference implements Serializable {
 
@@ -1899,7 +1935,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 					return result;
 				}
 			}
-			// Lenient fallback: dummy factory in case of original factory not found...
+			//宽松的回退：在找不到原厂的情况下的虚拟工厂......
 			DefaultListableBeanFactory dummyFactory = new DefaultListableBeanFactory();
 			dummyFactory.serializationId = this.id;
 			return dummyFactory;
@@ -1908,7 +1944,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 
 	/**
-	 * A dependency descriptor marker for nested elements.
+	 * 嵌套元素的依赖描述符标记。
 	 */
 	private static class NestedDependencyDescriptor extends DependencyDescriptor {
 
@@ -1920,7 +1956,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 
 	/**
-	 * A dependency descriptor for a multi-element declaration with nested elements.
+	 * 具有嵌套元素的多元素声明的依赖项描述符。
 	 */
 	private static class MultiElementDescriptor extends NestedDependencyDescriptor {
 
@@ -1931,7 +1967,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 
 	/**
-	 * A dependency descriptor marker for stream access to multiple elements.
+	 * 用于流访问多个元素的依赖描述符标记。
 	 */
 	private static class StreamDependencyDescriptor extends DependencyDescriptor {
 
@@ -1953,7 +1989,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 
 	/**
-	 * Serializable ObjectFactory/ObjectProvider for lazy resolution of a dependency.
+	 * Serializable ObjectFactoryObjectProvider 用于延迟解析依赖项。
 	 */
 	private class DependencyObjectProvider implements BeanObjectProvider<Object> {
 

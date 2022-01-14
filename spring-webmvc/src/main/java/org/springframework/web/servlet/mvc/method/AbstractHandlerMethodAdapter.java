@@ -60,7 +60,8 @@ public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator i
 
 
 	/**
-	 * This implementation expects the handler to be an {@link HandlerMethod}.
+	 * 提供给Dispatcher 判断当前Adapter 时候适合处理执行当前Handler 的判断
+	 * 当前实现判断Handler是不是HandlerMethod
 	 * @param handler the handler instance to check
 	 * @return whether or not this adapter can adapt the given handler
 	 */
@@ -70,14 +71,16 @@ public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator i
 	}
 
 	/**
-	 * Given a handler method, return whether or not this adapter can support it.
-	 * @param handlerMethod the handler method to check
+	 * 提供给子类扩展并修改supports 的逻辑,默认返回true 无逻辑,
+	 * 因为该抽象类默认只有一个实现
+	 * @param handlerMethod 当前 Handler 对象,默认只可能来源于RequestMappingHandlerMapping
 	 * @return whether or not this adapter can adapt the given method
 	 */
 	protected abstract boolean supportsInternal(HandlerMethod handlerMethod);
 
 	/**
-	 * This implementation expects the handler to be an {@link HandlerMethod}.
+	 * 处理uri对应Handler的入参, 反射执行委Handler委托的方法,
+	 * 然后返回ModelAndView对象
 	 */
 	@Override
 	@Nullable
@@ -88,9 +91,9 @@ public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator i
 	}
 
 	/**
-	 * Use the given handler method to handle the request.
-	 * @param request current HTTP request
-	 * @param response current HTTP response
+	 * 提供给子类处理handle真正逻辑的抽象方法
+	 * @param request 当前请求
+	 * @param response 当前响应
 	 * @param handlerMethod handler method to use. This object must have previously been passed to the
 	 * {@link #supportsInternal(HandlerMethod)} this interface, which must have returned {@code true}.
 	 * @return a ModelAndView object with the name of the view and the required model data,
@@ -102,7 +105,7 @@ public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator i
 			HttpServletResponse response, HandlerMethod handlerMethod) throws Exception;
 
 	/**
-	 * This implementation expects the handler to be an {@link HandlerMethod}.
+	 * 对于Http请求头LastModified 的实现,这里提供ModifiedInternal 抽象方法,各个子类自己去实现
 	 */
 	@Override
 	public final long getLastModified(HttpServletRequest request, Object handler) {
@@ -110,7 +113,8 @@ public abstract class AbstractHandlerMethodAdapter extends WebContentGenerator i
 	}
 
 	/**
-	 * Same contract as for {@link javax.servlet.http.HttpServlet#getLastModified(HttpServletRequest)}.
+	 * requestMappingHandlerAdapter 直接返回-1 说明spring mvc 没有实现HTTP相关的
+	 * 304 的规范
 	 * @param request current HTTP request
 	 * @param handlerMethod handler method to use
 	 * @return the lastModified value for the given handler

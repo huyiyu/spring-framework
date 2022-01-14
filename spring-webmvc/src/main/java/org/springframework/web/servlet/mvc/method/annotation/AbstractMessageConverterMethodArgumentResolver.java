@@ -150,23 +150,25 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 		MediaType contentType;
 		boolean noContentType = false;
 		try {
+			// 获取 content-Type
 			contentType = inputMessage.getHeaders().getContentType();
 		}
 		catch (InvalidMediaTypeException ex) {
 			throw new HttpMediaTypeNotSupportedException(ex.getMessage());
 		}
+		// 如果contentType为空 设置为OCTET_STREAM
 		if (contentType == null) {
 			noContentType = true;
 			contentType = MediaType.APPLICATION_OCTET_STREAM;
 		}
-
+		//
 		Class<?> contextClass = parameter.getContainingClass();
 		Class<T> targetClass = (targetType instanceof Class ? (Class<T>) targetType : null);
 		if (targetClass == null) {
 			ResolvableType resolvableType = ResolvableType.forMethodParameter(parameter);
 			targetClass = (Class<T>) resolvableType.resolve();
 		}
-
+		// 获取Httpmethod
 		HttpMethod httpMethod = (inputMessage instanceof HttpRequest ? ((HttpRequest) inputMessage).getMethod() : null);
 		Object body = NO_VALUE;
 
@@ -281,11 +283,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 	}
 
 	/**
-	 * Adapt the given argument against the method parameter, if necessary.
-	 * @param arg the resolved argument
-	 * @param parameter the method parameter descriptor
-	 * @return the adapted argument, or the original resolved argument as-is
-	 * @since 4.3.5
+	 * 如果是Optional 类型 包装上optional 类型
 	 */
 	@Nullable
 	protected Object adaptArgumentIfNecessary(@Nullable Object arg, MethodParameter parameter) {

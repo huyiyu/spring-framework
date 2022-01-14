@@ -57,6 +57,7 @@ import org.springframework.context.annotation.DeferredImportSelector.Group;
 import org.springframework.core.NestedIOException;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.Ordered;
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -112,6 +113,9 @@ class ConfigurationClassParser {
 
 	private static final PropertySourceFactory DEFAULT_PROPERTY_SOURCE_FACTORY = new DefaultPropertySourceFactory();
 
+	/**
+	 * 判断当前class是不是 java.lang.annotation或
+	 */
 	private static final Predicate<String> DEFAULT_EXCLUSION_FILTER = className ->
 			(className.startsWith("java.lang.annotation.") || className.startsWith("org.springframework.stereotype."));
 
@@ -247,17 +251,18 @@ class ConfigurationClassParser {
 		// Recursively process the configuration class and its superclass hierarchy.
 		SourceClass sourceClass = asSourceClass(configClass, filter);
 		do {
+			// 这返回值是 当前 配置类的父类 的 sourceClass
 			sourceClass = doProcessConfigurationClass(configClass, sourceClass, filter);
 		}
 		while (sourceClass != null);
-
+		// 这个Map key
 		this.configurationClasses.put(configClass, configClass);
 	}
 
 	/**
-	 * Apply processing and build a complete {@link ConfigurationClass} by reading the
-	 * annotations, members and methods from the source class. This method can be called
-	 * multiple times as relevant sources are discovered.
+	 * 通过阅读注释应用处理并构建完整的{@link ConfigurationClass},
+	 * 来自源类的成员和方法。当发现相关来源时，
+	 * 可以多次调用此方法。
 	 * @param configClass the configuration class being build
 	 * @param sourceClass a source class
 	 * @return the superclass, or {@code null} if none found or previously processed
@@ -272,7 +277,7 @@ class ConfigurationClassParser {
 			processMemberClasses(configClass, sourceClass, filter);
 		}
 
-		// Process any @PropertySource annotations
+		// Process any @PropertySource annotations //解析PropertySource
 		for (AnnotationAttributes propertySource : AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), PropertySources.class,
 				org.springframework.context.annotation.PropertySource.class)) {
@@ -285,7 +290,7 @@ class ConfigurationClassParser {
 			}
 		}
 
-		// Process any @ComponentScan annotations
+		// Process any @ComponentScan annotations // 解析包扫描
 		Set<AnnotationAttributes> componentScans = AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), ComponentScans.class, ComponentScan.class);
 		if (!componentScans.isEmpty() &&
@@ -306,13 +311,13 @@ class ConfigurationClassParser {
 				}
 			}
 		}
-
-		// Process any @Import annotations
+		// Process any @Import annotations // 解析@Import 注解
 		processImports(configClass, sourceClass, getImports(sourceClass), filter, true);
 
 		// Process any @ImportResource annotations
 		AnnotationAttributes importResource =
 				AnnotationConfigUtils.attributesFor(sourceClass.getMetadata(), ImportResource.class);
+
 		if (importResource != null) {
 			String[] resources = importResource.getStringArray("locations");
 			Class<? extends BeanDefinitionReader> readerClass = importResource.getClass("reader");
@@ -439,7 +444,7 @@ class ConfigurationClassParser {
 	 * @param propertySource metadata for the <code>@PropertySource</code> annotation found
 	 * @throws IOException if loading a property source failed
 	 */
-	private void processPropertySource(AnnotationAttributes propertySource) throws IOException {
+	private void  processPropertySource(AnnotationAttributes propertySource) throws IOException {
 		String name = propertySource.getString("name");
 		if (!StringUtils.hasLength(name)) {
 			name = null;
@@ -565,6 +570,7 @@ class ConfigurationClassParser {
 			this.importStack.push(configClass);
 			try {
 				for (SourceClass candidate : importCandidates) {
+					// 使用函数返回值的结果代替 import 的 属性值
 					if (candidate.isAssignable(ImportSelector.class)) {
 						// Candidate class is an ImportSelector -> delegate to it to determine imports
 						Class<?> candidateClass = candidate.loadClass();
@@ -593,6 +599,7 @@ class ConfigurationClassParser {
 						configClass.addImportBeanDefinitionRegistrar(registrar, currentSourceClass.getMetadata());
 					}
 					else {
+						// 普通Import
 						// Candidate class not an ImportSelector or ImportBeanDefinitionRegistrar ->
 						// process it as an @Configuration class
 						this.importStack.registerImport(
@@ -618,6 +625,7 @@ class ConfigurationClassParser {
 	private boolean isChainedImportOnStack(ConfigurationClass configClass) {
 		if (this.importStack.contains(configClass)) {
 			String configClassName = configClass.getMetadata().getClassName();
+
 			AnnotationMetadata importingClass = this.importStack.getImportingClassFor(configClassName);
 			while (importingClass != null) {
 				if (configClassName.equals(importingClass.getClassName())) {
@@ -635,7 +643,9 @@ class ConfigurationClassParser {
 
 
 	/**
-	 * Factory method to obtain a {@link SourceClass} from a {@link ConfigurationClass}.
+	 * 从 {@link ConfigurationClass} 获取 {@link SourceClass} 的工厂方法。
+	 * Metadata类型可能有两种 StandardAnnotationMetadata 是通过Class获得的
+	 * 而SimpleAnnotationMetadata是通过 ASM解析类名称获得的,此时通过不同的策略生成sourceClass
 	 */
 	private SourceClass asSourceClass(ConfigurationClass configurationClass, Predicate<String> filter) throws IOException {
 		AnnotationMetadata metadata = configurationClass.getMetadata();
@@ -655,6 +665,7 @@ class ConfigurationClassParser {
 		try {
 			// Sanity test that we can reflectively read annotations,
 			// including Class attributes; if not -> fall back to ASM
+			//验证注解属性含有class相关类型的内容是否无法转换
 			for (Annotation ann : classType.getDeclaredAnnotations()) {
 				AnnotationUtils.validateAnnotation(ann);
 			}

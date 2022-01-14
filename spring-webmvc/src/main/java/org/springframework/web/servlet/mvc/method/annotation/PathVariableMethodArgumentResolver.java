@@ -90,6 +90,9 @@ public class PathVariableMethodArgumentResolver extends AbstractNamedValueMethod
 	@Override
 	@SuppressWarnings("unchecked")
 	@Nullable
+	/**
+	 * pathvariable 的内容在注册 HandlerMethod时就解析完成了,此处直接从request获取
+	 */
 	protected Object resolveName(String name, MethodParameter parameter, NativeWebRequest request) throws Exception {
 		Map<String, String> uriTemplateVars = (Map<String, String>) request.getAttribute(
 				HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);

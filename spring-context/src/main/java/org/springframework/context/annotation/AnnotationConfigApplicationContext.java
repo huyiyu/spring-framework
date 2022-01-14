@@ -63,6 +63,10 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	/**
 	 * Create a new AnnotationConfigApplicationContext that needs to be populated
 	 * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
+	 * 创建 AnnotationConfigApplicationContext 同时初始化
+	 * AnnotatedBeanDefinitionReader 用于JavaConfig 配置解析
+	 * ClassPathBeanDefinitionScanner 用于 包扫描
+	 *
 	 */
 	public AnnotationConfigApplicationContext() {
 		StartupStep createAnnotatedBeanDefReader = this.getApplicationStartup().start("spring.context.annotated-bean-reader.create");
@@ -152,7 +156,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	//---------------------------------------------------------------------
 
 	/**
-	 * Register one or more component classes to be processed.
+	 * 注册一个或多个要处理的组件类。
 	 * <p>Note that {@link #refresh()} must be called in order for the context
 	 * to fully process the new classes.
 	 * @param componentClasses one or more component classes &mdash; for example,

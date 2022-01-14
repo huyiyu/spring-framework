@@ -47,13 +47,12 @@ import org.springframework.util.StringUtils;
 public abstract class BeanFactoryUtils {
 
 	/**
-	 * Separator for generated bean names. If a class name or parent name is not
-	 * unique, "#1", "#2" etc will be appended, until the name becomes unique.
+	 * 生成的Bean名称的分隔符。如果类名称或父名称不是唯一的，则将附加“ 1”，“ 2”等，直到名称变为唯一。
 	 */
 	public static final String GENERATED_BEAN_NAME_SEPARATOR = "#";
 
 	/**
-	 * Cache from name with factory bean prefix to stripped name without dereference.
+	 * 从具有工厂bean前缀的名称缓存到剥离的名称，而无需取消引用。
 	 * @since 5.1
 	 * @see BeanFactory#FACTORY_BEAN_PREFIX
 	 */
@@ -61,8 +60,8 @@ public abstract class BeanFactoryUtils {
 
 
 	/**
-	 * Return whether the given name is a factory dereference
-	 * (beginning with the factory dereference prefix).
+	 * 返回给定名称是否为工厂取消引用
+	 * (以工厂取消引用前缀开头）.
 	 * @param name the name of the bean
 	 * @return whether the given name is a factory dereference
 	 * @see BeanFactory#FACTORY_BEAN_PREFIX
@@ -72,8 +71,7 @@ public abstract class BeanFactoryUtils {
 	}
 
 	/**
-	 * Return the actual bean name, stripping out the factory dereference
-	 * prefix (if any, also stripping repeated factory prefixes if found).
+	 * 返回实际的bean名称，删除工厂取消引用前缀（如果有的话，还删除重复的工厂前缀（如果找到））。
 	 * @param name the name of the bean
 	 * @return the transformed name
 	 * @see BeanFactory#FACTORY_BEAN_PREFIX

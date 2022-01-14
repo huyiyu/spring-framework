@@ -112,6 +112,11 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	 * {@code ConfigurableEnvironment}
 	 */
 	@Override
+	/**
+	 * 在spring 启动的过程中,创建DispatcherServlet 并执行PostProcessor 初始化,ApplicationContextAwarePoscessor 会执行
+	 * 该方法并提供一个Environment
+	 *
+	 */
 	public void setEnvironment(Environment environment) {
 		Assert.isInstanceOf(ConfigurableEnvironment.class, environment, "ConfigurableEnvironment required");
 		this.environment = (ConfigurableEnvironment) environment;
@@ -148,7 +153,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	@Override
 	public final void init() throws ServletException {
 
-		// Set bean properties from init parameters.
+		// 验证 servlet 初始化参数有没有漏填必填属性 创建propertyValues
 		PropertyValues pvs = new ServletConfigPropertyValues(getServletConfig(), this.requiredProperties);
 		if (!pvs.isEmpty()) {
 			try {
@@ -156,9 +161,9 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 				ResourceLoader resourceLoader = new ServletContextResourceLoader(getServletContext());
 				bw.registerCustomEditor(Resource.class, new ResourceEditor(resourceLoader, getEnvironment()));
 				initBeanWrapper(bw);
+				//	考虑到最终实现类是 Dispatcher ,预示着可以在 initParam 中配置 DispatcherServlet 的属性
 				bw.setPropertyValues(pvs, true);
-			}
-			catch (BeansException ex) {
+			} catch (BeansException ex) {
 				if (logger.isErrorEnabled()) {
 					logger.error("Failed to set bean properties on servlet '" + getServletName() + "'", ex);
 				}
@@ -166,7 +171,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 			}
 		}
 
-		// Let subclasses do whatever initialization they like.
+		// 提供一个模板方法用于被子类继承实现init扩展
 		initServletBean();
 	}
 
@@ -204,14 +209,15 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 
 
 	/**
+	 * propertyValues 子类可直接被 BeanWrapper 解析
 	 * PropertyValues implementation created from ServletConfig init parameters.
 	 */
 	private static class ServletConfigPropertyValues extends MutablePropertyValues {
 
 		/**
 		 * Create new ServletConfigPropertyValues.
-		 * @param config the ServletConfig we'll use to take PropertyValues from
-		 * @param requiredProperties set of property names we need, where
+		 * @param config servletConfig 代表Web.xml 中servlet 标签下的配置,从ServletConfig中可获得全局 ServletContext 和 initParam
+		 * @param requiredProperties httpServletBean 提供设置必填属性的集合
 		 * we can't accept default values
 		 * @throws ServletException if any required properties are missing
 		 */

@@ -301,10 +301,10 @@ class ConfigurationClassBeanDefinitionReader {
 		}
 		BeanDefinition existingBeanDef = this.registry.getBeanDefinition(beanName);
 
-		// Is the existing bean definition one that was created from a configuration class?
-		// -> allow the current bean method to override, since both are at second-pass level.
-		// However, if the bean method is an overloaded case on the same configuration class,
-		// preserve the existing bean definition.
+		// 现有的 bean 定义是从配置类创建的吗?
+		// ->允许覆盖当前的 bean 方法，因为两者都处于第二阶段.
+		// 但是，如果 bean 方法是同一个配置类上的重载情况，
+		// 保留现有的 bean 定义.
 		if (existingBeanDef instanceof ConfigurationClassBeanDefinition) {
 			ConfigurationClassBeanDefinition ccbd = (ConfigurationClassBeanDefinition) existingBeanDef;
 			if (ccbd.getMetadata().getClassName().equals(
@@ -398,10 +398,10 @@ class ConfigurationClassBeanDefinitionReader {
 
 
 	/**
-	 * {@link RootBeanDefinition} marker subclass used to signify that a bean definition
-	 * was created from a configuration class as opposed to any other configuration source.
-	 * Used in bean overriding cases where it's necessary to determine whether the bean
-	 * definition was created externally.
+	 * {@link RootBeanDefinition} 标记子类用于表示 bean 定义是
+	 * 从配置类创建的，而不是任何其他配置源.
+	 * 在需要确定 bean 定义是否是在外部创建的
+	 * bean 覆盖情况下使用.
 	 */
 	@SuppressWarnings("serial")
 	private static class ConfigurationClassBeanDefinition extends RootBeanDefinition implements AnnotatedBeanDefinition {

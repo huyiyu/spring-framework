@@ -189,6 +189,7 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	public void afterPropertiesSet() {
 
 		this.config = new RequestMappingInfo.BuilderConfiguration();
+		// 设置是否允许尾部斜杠匹配 默认为true 匹配
 		this.config.setTrailingSlashMatch(useTrailingSlashMatch());
 		this.config.setContentNegotiationManager(getContentNegotiationManager());
 
@@ -198,11 +199,12 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 					"Suffix pattern matching not supported with PathPatternParser.");
 		}
 		else {
+				// 设置后缀匹配
 			this.config.setSuffixPatternMatch(useSuffixPatternMatch());
 			this.config.setRegisteredSuffixPatternMatch(useRegisteredSuffixPatternMatch());
-			this.config.setPathMatcher(getPathMatcher());
+			this.config.setPathMatcher(getPathMatcher());//设置路径匹配器
 		}
-
+		// 调用父类的HandlerMapping
 		super.afterPropertiesSet();
 	}
 
@@ -269,8 +271,10 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	@Override
 	@Nullable
 	protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
+		// 获取当前方法上的requestMapping信息
 		RequestMappingInfo info = createRequestMappingInfo(method);
 		if (info != null) {
+			//获取类上的注解信息 如果有 和方法上的信息做联合
 			RequestMappingInfo typeInfo = createRequestMappingInfo(handlerType);
 			if (typeInfo != null) {
 				info = typeInfo.combine(info);

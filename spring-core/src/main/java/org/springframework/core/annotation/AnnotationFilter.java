@@ -19,7 +19,7 @@ package org.springframework.core.annotation;
 import java.lang.annotation.Annotation;
 
 /**
- * Callback interface that can be used to filter specific annotation types.
+ * 可用于过滤特定注解类型的回调接口。
  *
  * <p>Note that the {@link MergedAnnotations} model (which this interface has been
  * designed for) always ignores lang annotations according to the {@link #PLAIN}
